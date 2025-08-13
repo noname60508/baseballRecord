@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use App\Http\Utils\commonMigration;
+
+return new class extends Migration
+{
+    /**
+     * 參考網址:https://learnku.com/docs/laravel/9.x/migrations/12248
+     * 表名:
+     */
+    public function up()
+    {
+        // $table->integer('')->nullable()->comment('');
+        // $table->tinyInteger('')->nullable()->comment('');
+        // $table->string('')->nullable()->comment('');
+        // $table->date('')->nullable()->comment('');
+        // $table->datetime('')->nullable()->comment('');
+        Schema::create('{{ table }}', function (Blueprint $table) {
+            $table->id()->comment('流水號');
+
+            commonMigration::basicTimestamp($table);
+            /** ***增加欄位***
+             */
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('{{ table }}');
+    }
+};

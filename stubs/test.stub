@@ -1,0 +1,39 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
+
+class {{ class }} extends TestCase
+{
+    use DatabaseTransactions;
+    private $token;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $response = $this->post('/api/login', [
+            'account' => 'sunrise',
+            'accessCode' => '2B39o182',
+        ]);
+
+        $response->assertStatus(200);
+
+        // dump($response->headers->all());
+        $this->token = $response->headers->get('authorization');
+    }
+    /**
+     * @test
+     */
+    public function function1()
+    {
+        $response = $this->get('/api/function1', [
+            'Authorization' => 'Bearer ' . $this->token
+        ]);
+
+        // dump($response->original);
+        $response->assertStatus(200);
+    }
+}
