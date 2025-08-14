@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * 資料表欄位增加
-     * 參考網址:https://learnku.com/docs/laravel/9.x/migrations/12248
+     * 參考網址:https://laravel.net.cn/docs/12.x/packages#migrations
      * 表名:
      */
     public function up()
