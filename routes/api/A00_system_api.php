@@ -12,8 +12,9 @@ Route::get('hello', function () {
 });
 
 Route::prefix('A10')->namespace('A10')->group(function () {
-    // Route::get('/auth', [App\Http\Controllers\A00\A10\A11_authController::class, 'index']);
-    // Route::post('/auth', [App\Http\Controllers\A00\A10\A11_authController::class, 'store']);
+    Route::prefix('A11_authController')->group(function () {
+        // 新增使用者
+        Route::get('register', 'A11_authController@register');
+    });
     Route::apiResource('A11_authController', 'A11_authController');
-    // Add other routes as needed
 });

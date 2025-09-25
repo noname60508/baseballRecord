@@ -4,6 +4,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
+use App\Http\Middleware\authentication;
 
 $namespace = 'App\Http\Controllers';
 return Application::configure(basePath: dirname(__DIR__))
@@ -21,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ];
 
             foreach ($names as $name) {
-                Route::middleware(['api'/* , 'tokenAuthentication' */])
+                Route::middleware(['api', 'authentication'/* , 'tokenAuthentication' */])
                     ->prefix('api/' . $name)
                     ->namespace($namespace . '\\' . $name)
                     ->group(base_path('routes/api/' . $name . '_system_api.php'));
@@ -29,7 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'abilities'      => CheckAbilities::class,
+            'ability'        => CheckForAnyAbility::class,
+            'authentication' => authentication::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

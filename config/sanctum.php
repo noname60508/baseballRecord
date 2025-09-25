@@ -34,7 +34,7 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    'guard' => ['web'/* , 'api' */],
 
     /*
     |--------------------------------------------------------------------------
@@ -47,7 +47,11 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => match (env('APP_DEBUG', false)) {
+        false   => 1440, // 1 day in minutes
+        true    => null,
+        default => null,
+    },
 
     /*
     |--------------------------------------------------------------------------
@@ -62,7 +66,7 @@ return [
     |
     */
 
-    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+    'token_prefix' => 'yuu',
 
     /*
     |--------------------------------------------------------------------------

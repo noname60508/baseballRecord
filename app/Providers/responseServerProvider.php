@@ -36,15 +36,15 @@ class responseServerProvider extends ServiceProvider
         });
 
         // bug回傳資料
-        Response::macro('apiFail', function ($e) {
+        Response::macro('apiFail', function ($e, $code = 500) {
             report($e);
             $message = env('APP_DEBUG') ? $e->getMessage() : '';
-            return Response::json(responseServerProvider::apiResponse(500, $message), 500);
+            return Response::json(responseServerProvider::apiResponse(500, $message), $code);
         });
 
         // 驗證失敗回傳
-        Response::macro('failureMessages', function ($message) {
-            return Response::json(responseServerProvider::apiResponse(400, $message), 400);
+        Response::macro('failureMessages', function ($message, $code = 400) {
+            return Response::json(responseServerProvider::apiResponse(400, $message), $code);
         });
     }
 
@@ -53,7 +53,7 @@ class responseServerProvider extends ServiceProvider
         return [
             // 'code'    => (string) $code,
             'message' => trans('errorCode.' . $code),
-            'data'    => $data,
+            'result'  => $data,
         ];
     }
 }
