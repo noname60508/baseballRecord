@@ -14,7 +14,11 @@ Route::get('hello', function () {
 Route::prefix('A10')->namespace('A10')->group(function () {
     Route::prefix('A11_authController')->group(function () {
         // 新增使用者
-        Route::get('register', 'A11_authController@register');
+        Route::post('register', 'A11_authController@register');
+        // 登出
+        Route::get('logout', 'A11_authController@logout');
+        // 更新使用者頭像
+        Route::post('iconUpdate', 'A11_authController@iconUpdate');
     });
     Route::apiResource('A11_authController', 'A11_authController');
 });

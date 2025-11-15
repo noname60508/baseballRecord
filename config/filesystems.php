@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -58,6 +58,15 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+        ],
+
+        'userIcon' => [
+            'driver' => 'local',
+            'root' => config('envDefault.filePath') . '/user/icon',
+            'url' => config('envDefault.fileUrl') . '/user/icon',
+            'visibility' => 'public',
+            'throw' => true,
+            'report' => true,
         ],
 
     ],

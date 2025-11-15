@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('account', 50)->unique()->comment('帳號')->after('id');
+            $table->string('account', 50)->comment('帳號')->after('id');
             $table->integer('failCount')->default(0)->comment('登入失敗次數')->after('remember_token');
             $table->datetime('failCooldown')->nullable()->comment('登入失敗冷卻時間')->after('failCount');
             $table->integer('isBan')->default(0)->comment('是否封鎖')->after('failCooldown');

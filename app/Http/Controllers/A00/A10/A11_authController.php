@@ -8,9 +8,19 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Http\Utils\tools;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class A11_authController extends Controller
 {
+    public $disk;
+    public function __construct()
+    {
+        parent::__construct();
+        $this->disk = Storage::disk('userIcon');
+    }
+
     public function register(Request $request)
     {
         // 參數驗證
@@ -20,12 +30,14 @@ class A11_authController extends Controller
             'password' => ['required', 'string'],
             'name'     => ['required', 'string'],
             'email'    => ['required', 'email'],
+            'icon'     => ['nullable', 'image', 'max:5120'],
         ], [
             // 自訂回傳錯誤訊息
             'account'  => '【帳號】必填且須為字串',
             'password' => '【密碼】必填且須為字串',
             'name'     => '【使用者名稱】必填且須為字串',
             'email'    => '【信箱】必填且須為信箱格式',
+            'icon'     => '【頭像】須為圖片且不可超過5MB',
         ]);
         // 錯誤回傳
         if ($validator->fails()) {
@@ -44,6 +56,7 @@ class A11_authController extends Controller
                 return response()->failureMessages(['email' => '信箱已存在']);
             }
 
+            DB::beginTransaction();
             // 建立新使用者
             $user = User::create([
                 'account'  => $request->account,
@@ -52,8 +65,20 @@ class A11_authController extends Controller
                 'email'    => $request->email,
             ]);
 
+            // 處理頭像上傳
+            if ($request->hasFile('icon')) {
+                $iconFile = $request->file('icon');
+                $iconPath = $this->fileUpdate($iconFile, $user->id);
+
+                // 更新使用者頭像路徑
+                $user->icon = $iconPath;
+                $user->save();
+            }
+
+            DB::commit();
             return response()->apiResponse($user);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->apiFail($e);
         }
     }
@@ -116,10 +141,11 @@ class A11_authController extends Controller
 
             $output = [
                 'id'      => $user->id,
-                'account' => $user->account,
-                'name'    => $user->name,
-                'email'   => $user->email,
+                'account' => $user->account ?? null,
+                'name'    => $user->name ?? null,
+                'email'   => $user->email ?? null,
                 'isBan'   => $user->isBan,
+                'icon'    => !empty($value->icon) ? $this->disk->url($value->icon) : null,
             ];
             return response()->apiResponse($output, $token);
         } catch (\Throwable $e) {
@@ -134,7 +160,6 @@ class A11_authController extends Controller
      */
     public function index(Request $request)
     {
-        return $request->user()->currentAccessToken();
         // 參數驗證
         $validator = Validator::make($request->all(), [
             // 驗證規則
@@ -155,7 +180,7 @@ class A11_authController extends Controller
         }
 
         try {
-            $table = User::select('id', 'account', 'name', 'email', 'isBan');
+            $table = User::select('id', 'account', 'name', 'email', 'isBan', 'icon');
 
             foreach ($request->only(['account', 'name', 'email', 'isBan']) as $key => $value) {
                 if ($value === '') continue;
@@ -179,6 +204,7 @@ class A11_authController extends Controller
                     'name'    => $value->name ?? null,
                     'email'   => $value->email ?? null,
                     'isBan'   => $value->isBan ?? null,
+                    'icon'    => !empty($value->icon) ? $this->disk->url($value->icon) : null,
                 ];
             });
 
@@ -221,11 +247,12 @@ class A11_authController extends Controller
                 'id'      => $data->id,
                 'account' => $data->account ?? null,
                 'name'    => $data->name ?? null,
+                'icon'    => !empty($data->icon) ? $this->disk->url($data->icon) : null,
                 'email'   => $data->email ?? null,
                 'email_verified_at' => empty($data->email_verified_at) ? 0 : 1,
-                'isBan'   => $data->isBan ?? null,
-                'lastLoginAt' => !empty($data->lastLoginAt) ? Carbon::parse($data->lastLoginAt)->format('Y-m-d H:i:s') : null,
-                'lastLoginIp' => $data->lastLoginIp ?? null,
+                'isBan'             => $data->isBan ?? null,
+                'lastLoginAt'       => !empty($data->lastLoginAt) ? Carbon::parse($data->lastLoginAt)->format('Y-m-d H:i:s') : null,
+                'lastLoginIp'       => $data->lastLoginIp ?? null,
             ];
             return response()->apiResponse($output);
         } catch (\Throwable $e) {
@@ -299,5 +326,65 @@ class A11_authController extends Controller
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $user->tokens()->delete();
+            return response()->apiResponse('登出成功');
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
+
+    public function iconUpdate(Request $request)
+    {
+        // 參數驗證
+        $validator = Validator::make($request->all(), [
+            // 驗證規則
+            'id'   => ['required', 'integer'],
+            'icon' => ['required', 'image', 'max:5120'],
+        ], [
+            // 自訂回傳錯誤訊息
+            'id'   => '【id:流水號】必填須為整數',
+            'icon' => '【頭像】必須上傳須為圖片格式不可超過5MB',
+        ]);
+        // 錯誤回傳
+        if ($validator->fails()) {
+            return response()->failureMessages($validator->errors());
+        }
+
+        try {
+            $user = User::where('id', $request->id)->first();
+
+            if (!is_null($user->icon) && $this->disk->exists($user->icon)) {
+                $this->disk->delete($user->icon);
+            }
+
+            // 處理頭像上傳
+            if ($request->hasFile('icon')) {
+                $iconFile = $request->file('icon');
+                $iconPath = $this->fileUpdate($iconFile, $user->id);
+
+                // 更新使用者頭像路徑
+                $user->icon = $iconPath;
+                $user->save();
+            }
+
+            return response()->apiResponse($this->disk->url($user->icon));
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
+
+    public function fileUpdate($file, $id)
+    {
+        $fileName = 'user_' . $id . '.' . $file->getClientOriginalExtension();
+        $middlePath = tools::userIconPathSystematics($id);
+        $this->disk->putFileAs($middlePath, $file, $fileName);
+
+        return $middlePath . '/' . $fileName;
     }
 }
