@@ -19,6 +19,8 @@ Route::prefix('A10')->namespace('A10')->group(function () {
         Route::get('logout', 'A11_authController@logout');
         // 更新使用者頭像
         Route::post('iconUpdate', 'A11_authController@iconUpdate');
+        // 修改密碼
+        Route::post('changePassword', 'A11_authController@changePassword');
     });
     Route::apiResource('A11_authController', 'A11_authController');
 });

@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'abilities'      => CheckAbilities::class,
             'ability'        => CheckForAnyAbility::class,
+            // token檢查
             'authentication' => authentication::class,
         ]);
     })

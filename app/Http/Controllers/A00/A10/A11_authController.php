@@ -387,4 +387,46 @@ class A11_authController extends Controller
 
         return $middlePath . '/' . $fileName;
     }
+
+    public function changePassword(Request $request)
+    {
+        // 參數驗證
+        $validator = Validator::make($request->all(), [
+            // 驗證規則
+            'id'          => ['required', 'integer'],
+            'password'    => ['required', 'string'],
+            'newPassword' => ['required', 'string'],
+        ], [
+            // 自訂回傳錯誤訊息
+            'id'          => '【id:流水號】必填且須為整數',
+            'password'    => '【密碼】必填且須為字串',
+            'newPassword' => '【新密碼】必填且須為字串',
+        ]);
+        // 錯誤回傳
+        if ($validator->fails()) {
+            return response()->failureMessages($validator->errors());
+        }
+
+        try {
+            $user = User::where('id', $request->id)->first();
+            if (!password_verify($request->password, $user->password)) {
+                return response()->failureMessages(['舊密碼錯誤']);
+            }
+
+            User::where('id', $request->id)->update([
+                'password' => bcrypt($request->newPassword),
+            ]);
+
+            // 刪除所有舊的 tokens,但保留當前使用的
+            $currentToken = $request->user()->currentAccessToken();
+
+            $user->tokens()
+                ->where('id', '!=', $currentToken->id)
+                ->delete();
+
+            return response()->apiResponse('密碼更新成功');
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
 }
