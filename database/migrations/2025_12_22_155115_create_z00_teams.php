@@ -15,7 +15,9 @@ return new class extends Migration
     {
         Schema::create('Z00_teams', function (Blueprint $table) {
             $table->id()->comment('流水號');
+            $table->integer('user_id')->comment('使用者ID');
             $table->string('name')->nullable()->comment('隊伍名稱');
+            $table->integer('teamtype')->nullable()->comment('自己隊伍還對手隊伍 (1:自己隊伍 2:對手隊伍)');
 
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***

@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('Z00_fields', function (Blueprint $table) {
             $table->id()->comment('流水號');
+            $table->integer('user_id')->nullable()->comment('使用者ID');
             $table->string('name')->nullable()->comment('場地名稱');
 
             commonMigration::basicTimestamp($table);

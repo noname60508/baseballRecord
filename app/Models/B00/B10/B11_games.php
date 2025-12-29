@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
+use App\Models\Z00\Z00_seasons;
+use App\Models\Z00\Z00_teams;
+use App\Models\Z00\Z00_fields;
 
 class B11_games extends Model
 {
@@ -22,4 +25,21 @@ class B11_games extends Model
     // protected $fillable=[];
     // 黑名單:不可批量新增欄位
     protected $guarded = [];
+
+    public function seasonName()
+    {
+        return $this->belongsTo(Z00_seasons::class, 'Z00_season_id', 'id');
+    }
+    public function teamName()
+    {
+        return $this->belongsTo(Z00_teams::class, 'Z00_team_id', 'id');
+    }
+    public function teamNameEnemy()
+    {
+        return $this->belongsTo(Z00_teams::class, 'Z00_team_id_enemy', 'id');
+    }
+    public function fieldName()
+    {
+        return $this->belongsTo(Z00_fields::class, 'Z00_field_id', 'id');
+    }
 }

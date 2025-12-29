@@ -18,9 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () use ($namespace): void {
             $names = [
                 'A00',
-                // 'B00',
+                'B00',
                 // 'C00',
-                // 'Z00',
+                'Z00',
             ];
 
             foreach ($names as $name) {

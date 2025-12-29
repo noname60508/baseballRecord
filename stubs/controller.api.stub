@@ -32,14 +32,26 @@ class {{ class }} extends Controller
         try {
             $output = [];
             //分頁清單
-            // $skip_paginate = (int) ($request->paginate_rows ?? $this->paginate_rows);
-            // $table  = $table->paginate($skip_paginate);
-            // $output = $table->getCollection()->transform(function ($value) {
-            //     return [
-            //     ];
-            // });
+            // if ($request->has('page') && $request->input('page', 1) > 0) {
+            //     //分頁清單
+            //     $skip_paginate = (int) ($request->paginate_rows ?? $this->paginate_rows);
+            //     $table  = $table->paginate($skip_paginate);
+            //     $output = $table->getCollection()->transform(function ($value) {
+            //         return [
+            //              //
+            //         ];
+            //     });
+            //     $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
+            // } else {
+            //     //不分頁清單
+            //     $table = $table->get();
+            //     $output = $table->transform(function ($value) {
+            //         return [
+            //              //
+            //         ];
+            //     });
+            // }
 
-            // $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
             return response()->apiResponse($output);
         } catch (\Throwable $e) {
             return response()->apiFail($e);
@@ -70,8 +82,9 @@ class {{ class }} extends Controller
         try {
             // 回傳資料
             $data = [];
-            // $data=ActiveModel::create($validator);
-            return response()->apiResponse([]);
+            // $table = ActiveModel::create($validator);
+
+            return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
@@ -138,7 +151,7 @@ class {{ class }} extends Controller
             // $updateArr = $request->only([]);
             // $ActiveModel->update($updateArr);
 
-            return response()->apiResponse([]);
+            return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
@@ -155,7 +168,7 @@ class {{ class }} extends Controller
         // 刪除資料
         try {
             // ActiveModel::find($id)->delete();
-            return response()->apiResponse([]);
+            return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
