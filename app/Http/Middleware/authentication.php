@@ -10,6 +10,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class authentication
 {
+    // todo token換發
     public function handle(Request $request, Closure $next): Response
     {
         try {

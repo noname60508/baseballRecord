@@ -9,6 +9,7 @@ use Mattiverse\Userstamps\Traits\Userstamps;
 use App\Models\Z00\Z00_seasons;
 use App\Models\Z00\Z00_teams;
 use App\Models\Z00\Z00_fields;
+use App\Models\B00\B20\B21_gameLogBatter;
 
 class B11_games extends Model
 {
@@ -41,5 +42,10 @@ class B11_games extends Model
     public function fieldName()
     {
         return $this->belongsTo(Z00_fields::class, 'Z00_field_id', 'id');
+    }
+
+    public function batterGameLog()
+    {
+        return $this->hasOne(B21_gameLogBatter::class, 'game_id', 'id')->select('id', 'game_id', 'user_id', 'PA', 'AB', 'RBI', 'R', 'single', 'double', 'triple', 'HR', 'BB', 'IBB', 'HBP', 'SO', 'SH', 'SF', 'SB', 'CS');
     }
 }

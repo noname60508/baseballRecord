@@ -23,11 +23,14 @@ return new class extends Migration
             $table->date('gameDate')->nullable()->comment('比賽日期');
             $table->time('startTime')->nullable()->comment('比賽開始時間');
             $table->time('endTime')->nullable()->comment('比賽結束時間');
-            $table->integer('result')->nullable()->comment('比賽結果(1:勝,2:敗,3:和)');
+            $table->integer('gameResult')->nullable()->comment('比賽結果(1:勝,2:敗,3:和)');
             $table->string('memo')->nullable()->comment('備註');
 
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***
+             * $table->integer('homeAway')->nullable()->comment('先攻後攻(1:先攻 2:後攻)');
+             * $table->integer('score')->nullable()->comment('我方得分');
+             * $table->integer('enemyScore')->nullable()->comment('對方得分');
              */
         });
     }

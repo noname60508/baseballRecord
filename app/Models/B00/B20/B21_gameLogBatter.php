@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Models\C00\C10;
+namespace App\Models\B00\B20;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
 
-class C11_batterResult extends Model
+class B21_gameLogBatter extends Model
 {
     use HasFactory;
     use SoftDeletes;
     use Userstamps;
 
-    // 資料表名稱:打擊成績
+    // 資料表名稱:選手逐場打擊成績
 
     // 指定模型的表名
-    protected $table = 'C11_batterResult';
+    protected $table = 'B21_gameLogBatter';
     // 白名單與黑名單擇一使用，即可使用create方法
     // 白名單:可批量新增欄位
     // protected $fillable=[];

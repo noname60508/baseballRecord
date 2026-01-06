@@ -27,7 +27,7 @@ class B11_gamesController extends Controller
             'Z00_field_id'      => ['nullable', 'integer'],
             'gameDate'          => ['nullable', 'array', 'size:2'],
             'gameDate.*'        => ['nullable', 'date'],
-            'result'            => ['nullable', 'in:1,2,3'],
+            'gameResult'        => ['nullable', 'in:1,2,3'],
         ], [
             // 自訂回傳錯誤訊息
             'Z00_season_id'     => '【Z00_season_id:賽季ID】須為整數',
@@ -36,7 +36,7 @@ class B11_gamesController extends Controller
             'Z00_field_id'      => '【Z00_field_id:場地ID】須為整數',
             'gameDate'          => '【gameDate:比賽日期】需為陣列，且包含兩個日期值',
             'gameDate.*'        => '【gameDate:比賽日期】陣列中的每個值皆需為日期格式',
-            'result'            => '【result:比賽結果】僅能為1(勝)、2(敗)、3(和)',
+            'gameResult'        => '【gameResult:比賽結果】僅能為1(勝)、2(敗)、3(和)',
         ]);
         // 錯誤回傳
         if ($validator->fails()) {
@@ -44,8 +44,8 @@ class B11_gamesController extends Controller
         }
 
         try {
-            $table = B11_games::select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'result', 'memo')
-                ->with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName'])
+            $table = B11_games::select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
+                ->with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName', 'batterGameLog'])
                 ->where('user_id', $request->user()->id)
                 ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id')), function ($query) use ($request) {
                     $query->where('Z00_season_id', $request->input('Z00_season_id'));
@@ -62,9 +62,11 @@ class B11_gamesController extends Controller
                 ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
                     $query->whereBetween('gameDate', $request->input('gameDate'));
                 })
-                ->when($request->has('result') && !is_null($request->input('result')), function ($query) use ($request) {
-                    $query->where('result', $request->input('result'));
+                ->when($request->has('gameResult') && !is_null($request->input('gameResult')), function ($query) use ($request) {
+                    $query->where('gameResult', $request->input('gameResult'));
                 });
+
+            // return $table->where('id', 4)->get();
             $output = [];
             //分頁清單
             if ($request->has('page') && $request->input('page', 1) > 0) {
@@ -85,8 +87,24 @@ class B11_gamesController extends Controller
                         'gameDate'          => $value->gameDate ?? null,
                         'startTime'         => $value->startTime ?? null,
                         'endTime'           => $value->endTime ?? null,
-                        'result'            => $value->result ?? null,
+                        'homeAway'          => $value->homeAway ?? null,
+                        'score'             => $value->score ?? null,
+                        'enemyScore'        => $value->enemyScore ?? null,
+                        'gameResult'        => $value->gameResult ?? null,
                         'memo'              => $value->memo ?? null,
+                        'batterResult'      => [
+                            // 打數
+                            'AB' => $value->batterGameLog['AB'] ?? 0,
+                            // 安打
+                            'single' => $value->batterGameLog['single'] ?? 0,
+                            'double' => $value->batterGameLog['double'] ?? 0,
+                            'triple' => $value->batterGameLog['triple'] ?? 0,
+                            'HR'     => $value->batterGameLog['HR'] ?? 0,
+                            // 保送
+                            'BB' => ($value->batterGameLog['BB'] ?? 0) + ($value->batterGameLog['IBB'] ?? 0),
+                            // 觸身球
+                            'HBP' => $value->batterGameLog['HBP'] ?? 0,
+                        ],
                     ];
                 });
                 $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
@@ -107,8 +125,24 @@ class B11_gamesController extends Controller
                         'gameDate'          => $value->gameDate ?? null,
                         'startTime'         => $value->startTime ?? null,
                         'endTime'           => $value->endTime ?? null,
-                        'result'            => $value->result ?? null,
+                        'gameResult'        => $value->gameResult ?? null,
+                        'homeAway'          => $value->homeAway ?? null,
+                        'score'             => $value->score ?? null,
+                        'enemyScore'        => $value->enemyScore ?? null,
                         'memo'              => $value->memo ?? null,
+                        'batterResult'      => [
+                            // 打數
+                            'AB' => $value->batterGameLog['AB'] ?? 0,
+                            // 安打
+                            'single' => $value->batterGameLog['single'] ?? 0,
+                            'double' => $value->batterGameLog['double'] ?? 0,
+                            'triple' => $value->batterGameLog['triple'] ?? 0,
+                            'HR'     => $value->batterGameLog['HR'] ?? 0,
+                            // 保送
+                            'BB' => ($value->batterGameLog['BB'] ?? 0) + ($value->batterGameLog['IBB'] ?? 0),
+                            // 觸身球
+                            'HBP' => $value->batterGameLog['HBP'] ?? 0,
+                        ],
                     ];
                 });
             }
@@ -137,7 +171,9 @@ class B11_gamesController extends Controller
             'gameDate'          => ['nullable', 'date'],
             'startTime'         => ['nullable', 'date_format:H:i'],
             'endTime'           => ['nullable', 'date_format:H:i'],
-            'result'            => ['nullable', 'in:1,2,3'],
+            'homeAway'          => ['nullable', 'in:1,2'],
+            'score'             => ['nullable', 'integer'],
+            'enemyScore'        => ['nullable', 'integer'],
             'memo'              => ['nullable', 'string'],
         ], [
             // 自訂回傳錯誤訊息
@@ -148,7 +184,9 @@ class B11_gamesController extends Controller
             'gameDate'          => '【gameDate:比賽日期】需為日期格式',
             'startTime'         => '【startTime:比賽開始時間】需為時間格式H:i',
             'endTime'           => '【endTime:比賽結束時間】需為時間格式H:i',
-            'result'            => '【result:比賽結果】僅能為1(勝)、2(敗)、3(和)',
+            'homeAway'          => '【homeAway:先攻後攻】須為1或2 (1:先攻 2:後攻)',
+            'score'             => '【score:我方得分】須為整數',
+            'enemyScore'        => '【enemyScore:對方得分】須為整數',
             'memo'              => '【memo:備註】須為字串格式',
         ]);
         // 錯誤回傳
@@ -157,6 +195,9 @@ class B11_gamesController extends Controller
         }
 
         try {
+            if ($request->has('score') && $request->has('enemyScore'))
+                $gameResult = $this->calculateGameResult($request->input('score'), $request->input('enemyScore'));
+
             $createdArr = array_merge($request->only([
                 'Z00_season_id',
                 'Z00_team_id',
@@ -165,10 +206,13 @@ class B11_gamesController extends Controller
                 'gameDate',
                 'startTime',
                 'endTime',
-                'result',
+                'homeAway',
+                'score',
+                'enemyScore',
                 'memo',
             ]), [
-                'user_id' => $request->user()->id,
+                'user_id'    => $request->user()->id,
+                'gameResult' => $gameResult ?? null,
             ]);
             // 建立資料
             $data = B11_games::create($createdArr);
@@ -206,7 +250,7 @@ class B11_gamesController extends Controller
 
         try {
             $table = B11_games::with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName',])
-                ->select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'result', 'memo')
+                ->select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
                 ->where('id', $id)
                 ->where('user_id', request()->user()->id)
                 ->first();
@@ -223,7 +267,9 @@ class B11_gamesController extends Controller
                 'gameDate'          => $table->gameDate ?? null,
                 'startTime'         => $table->startTime ?? null,
                 'endTime'           => $table->endTime ?? null,
-                'result'            => $table->result ?? null,
+                'homeAway'          => $table->homeAway ?? null,
+                'score'             => $table->score ?? null,
+                'enemyScore'        => $table->enemyScore ?? null,
                 'memo'              => $table->memo ?? null,
             ];
             return response()->apiResponse($data);
@@ -244,25 +290,29 @@ class B11_gamesController extends Controller
         // 參數驗證
         $validator = Validator::make($request->all(), [
             // 驗證規則
-            'Z00_season_id'     => ['required', 'integer'],
-            'Z00_team_id'       => ['required', 'integer'],
+            'Z00_season_id'     => ['nullable', 'integer'],
+            'Z00_team_id'       => ['nullable', 'integer'],
             'Z00_team_id_enemy' => ['nullable', 'integer'],
             'Z00_field_id'      => ['nullable', 'integer'],
             'gameDate'          => ['nullable', 'date'],
             'startTime'         => ['nullable', 'date_format:H:i'],
             'endTime'           => ['nullable', 'date_format:H:i'],
-            'result'            => ['nullable', 'in:1,2,3'],
+            'homeAway'          => ['nullable', 'in:1,2'],
+            'score'             => ['nullable', 'integer'],
+            'enemyScore'        => ['nullable', 'integer'],
             'memo'              => ['nullable', 'string'],
         ], [
             // 自訂回傳錯誤訊息
-            'Z00_season_id'     => '【Z00_season_id:賽季ID】必填且須為整數',
-            'Z00_team_id'       => '【Z00_team_id:球隊ID】必填且須為整數',
+            'Z00_season_id'     => '【Z00_season_id:賽季ID】須為整數',
+            'Z00_team_id'       => '【Z00_team_id:球隊ID】須為整數',
             'Z00_team_id_enemy' => '【Z00_team_id_enemy:對手球隊ID】須為整數',
             'Z00_field_id'      => '【Z00_field_id:場地ID】須為整數',
             'gameDate'          => '【gameDate:比賽日期】需為日期格式',
             'startTime'         => '【startTime:比賽開始時間】需為時間格式H:i',
             'endTime'           => '【endTime:比賽結束時間】需為時間格式H:i',
-            'result'            => '【result:比賽結果】僅能為1(勝)、2(敗)、3(和)',
+            'homeAway'          => '【homeAway:主客場】僅能為1(主場)、2(客場)',
+            'score'             => '【score:我方分數】須為整數',
+            'enemyScore'        => '【enemyScore:對手分數】須為整數',
             'memo'              => '【memo:備註】須為字串格式',
         ]);
         // 錯誤回傳
@@ -273,12 +323,19 @@ class B11_gamesController extends Controller
         try {
             $table = B11_games::where('id', $id);
             if ($request->user()->id != $table->first()->user_id) {
-                return response()->failureMessages('無修改權限');
+                return response()->failureMessages('無修改權限', 403);
             }
-            $updateArr = $request->only(['Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'result', 'memo',]);
+            $updateArr = $request->only(['Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'homeAway', 'score', 'enemyScore', 'memo',]);
+
+            if ($request->has('score') || $request->has('enemyScore')) {
+                $score = $request->input('score', $table->first()->score);
+                $enemyScore = $request->input('enemyScore', $table->first()->enemyScore);
+                $gameResult = $this->calculateGameResult($score, $enemyScore);
+                $updateArr['gameResult'] = $gameResult;
+            }
 
             foreach ($updateArr as $key => $value) {
-                if (is_null($value)) {
+                if (is_null($value) && $value == '') {
                     unset($updateArr[$key]);
                 }
             }
@@ -301,13 +358,33 @@ class B11_gamesController extends Controller
         // 刪除資料
         try {
             $table = B11_games::find($id);
-            if (request()->user()->id != $table->first()->user_id) {
-                return response()->failureMessages('無修改權限');
+            if (request()->user()->id != $table->user_id) {
+                return response()->failureMessages('無修改權限', 403);
             }
             $table->delete();
             return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
+    }
+
+    /**
+     * 計算比賽結果
+     * @param int $score 我方分數
+     * @param int $enemyScore 對手分數
+     * @return int 比賽結果 1:勝 2:敗 3:和
+     */
+    private function calculateGameResult($score, $enemyScore): int | null
+    {
+        if (is_null($score) || is_null($enemyScore)) {
+            return null;
+        }
+        // 判斷比賽結果 <=>(比大小 左邊大於右邊為1,左邊小於右邊為-1,相等為0)
+        match ($score <=> $enemyScore) {
+            1 => $gameResult = 1,   // 勝
+            -1 => $gameResult = 2,  // 敗
+            0 => $gameResult = 3,   // 和
+        };
+        return (int) $gameResult;
     }
 }

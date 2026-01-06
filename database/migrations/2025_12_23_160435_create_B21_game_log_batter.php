@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('C11_gameLogBatter', function (Blueprint $table) {
+        Schema::create('B21_gameLogBatter', function (Blueprint $table) {
             $table->id()->comment('流水號');
             $table->integer('game_id')->nullable()->comment('比賽ID');
             $table->integer('user_id')->nullable()->comment('使用者ID');
@@ -21,9 +21,9 @@ return new class extends Migration
             $table->integer('AB')->nullable()->comment('打數');
             $table->integer('RBI')->nullable()->comment('打點');
             $table->integer('R')->nullable()->comment('得分');
-            $table->integer('1B')->nullable()->comment('一壘安打數');
-            $table->integer('2B')->nullable()->comment('二壘安打數');
-            $table->integer('3B')->nullable()->comment('三壘安打數');
+            $table->integer('single')->nullable()->comment('一壘安打數');
+            $table->integer('double')->nullable()->comment('二壘安打數');
+            $table->integer('triple')->nullable()->comment('三壘安打數');
             $table->integer('HR')->nullable()->comment('全壘打數');
             $table->integer('BB')->nullable()->comment('四壞球數');
             $table->integer('IBB')->nullable()->comment('故意四壞球數');
@@ -47,6 +47,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('C11_gameLogBatter');
+        Schema::dropIfExists('B21_gameLogBatter');
     }
 };

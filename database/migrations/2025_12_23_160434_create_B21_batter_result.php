@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('C11_batterResult', function (Blueprint $table) {
+        Schema::create('B21_batterResult', function (Blueprint $table) {
             $table->id()->comment('流水號');
             $table->integer('game_id')->nullable()->comment('比賽id');
             $table->integer('user_id')->nullable()->comment('使用者id');
@@ -26,6 +26,7 @@ return new class extends Migration
 
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***
+             * $table->integer('orderNo')->nullable()->comment('打席順序');
              */
         });
     }
@@ -37,6 +38,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('C11_batterResult');
+        Schema::dropIfExists('B21_batterResult');
     }
 };
