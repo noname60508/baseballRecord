@@ -280,14 +280,26 @@ class resultList extends Seeder
             ],
             [
                 'id' => 12,
-                'code' => 'LFLine',
-                'name' => '左外野邊線',
+                'code' => '1BFoul',
+                'name' => '一壘界外',
                 'isPosition' => 0,
             ],
             [
                 'id' => 13,
-                'code' => 'RFLine',
-                'name' => '右外野邊線',
+                'code' => '3BFoul',
+                'name' => '三壘界外',
+                'isPosition' => 0,
+            ],
+            [
+                'id' => 14,
+                'code' => 'LFFoul',
+                'name' => '左外野界外',
+                'isPosition' => 0,
+            ],
+            [
+                'id' => 15,
+                'code' => 'RFLFoul',
+                'name' => '右外野界外',
                 'isPosition' => 0,
             ],
         ];

@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Utils\tools;
 use App\Models\B00\B20\B21_batterResult;
 use App\Models\B00\B20\B21_gameLogBatter;
 use App\Models\Z00\Z00_matchupResultList;
@@ -76,6 +77,11 @@ class B21_battingResult extends Controller
         try {
             DB::beginTransaction();
             foreach ($request->input('result') as $key => $result) {
+                $displayName = tools::getDisplayName(
+                    Z00_matchupResultList_id: $result['Z00_matchupResultList_id'],
+                    Z00_location_id: $result['Z00_location_id'] ?? 0,
+                    Z00_BallInPlayType_id: $result['Z00_BallInPlayType_id'] ?? 0,
+                );
                 $B21_batterResult[] = B21_batterResult::create([
                     'game_id'                     => $request->input('game_id'),
                     'user_id'                     => $request->user()->id,
@@ -85,11 +91,13 @@ class B21_battingResult extends Controller
                     'Z00_BallInPlayType_id'       => $result['Z00_BallInPlayType_id'] ?? 0,
                     'RBI'                         => $result['RBI'] ?? 0,
                     'RISP'                        => $result['RISP'],
+                    'RISP'                        => $result['RISP'],
+                    'displayName'                 => $displayName,
                     'orderNo'                     => $result['orderNo'],
                 ]);
             }
 
-            $this->B21_gameLogBatterUpdate($request->input('game_id'));
+            tools::B21_gameLogBatterUpdate($request->input('game_id'));
             DB::commit();
             return response()->apiResponse();
         } catch (\Throwable $e) {
@@ -105,7 +113,7 @@ class B21_battingResult extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request)
     {
         // 參數驗證
         $validator = Validator::make($request->all(), [
@@ -141,16 +149,18 @@ class B21_battingResult extends Controller
         }
 
         try {
-            $table = B21_batterResult::select('user_id')
+            $table = B21_batterResult::select('id', 'user_id', 'Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id')
                 ->whereIn('id', array_column($request->input('result'), 'id'))
-                ->groupBy('user_id')
                 ->get();
             // return $table;
+            // 整理更新資料的userId
+            $updateUserId = $table->pluck('user_id')->unique();
 
-            if ($table->count() > 1 || $table[0]['user_id'] != $request->user()->id) {
+            if ($updateUserId->count() > 1 || $updateUserId[0] != $request->user()->id) {
                 return response()->failureMessages('無修改權限', 403);
             }
 
+            $table = $table->keyBy('id');
             $updateLog = 0;
             DB::beginTransaction();
             foreach ($request->input('result') as $key => $result) {
@@ -166,13 +176,30 @@ class B21_battingResult extends Controller
                 if (strlen(trim($updateArr['Z00_matchupResultList_id'] ?? null)) > 0 || strlen(trim($updateArr['RBI'] ?? null)) > 0) {
                     $updateLog = 1;
                 }
+                // 如果有修改打擊結果或位置或擊球型態，則記錄需要更新打者逐場打擊紀錄
+                if (
+                    strlen(trim($updateArr['Z00_matchupResultList_id'] ?? null)) > 0
+                    || strlen(trim($updateArr['Z00_location_id'] ?? null)) > 0
+                    || strlen(trim($updateArr['Z00_BallInPlayType_id'] ?? null)) > 0
+                ) {
+                    $Z00_matchupResultList_id = $updateArr['Z00_matchupResultList_id'] ?? $table[$result['id']]['Z00_matchupResultList_id'];
+                    $Z00_location_id = $updateArr['Z00_location_id'] ?? $table[$result['id']]['Z00_location_id'];
+                    $Z00_BallInPlayType_id = $updateArr['Z00_BallInPlayType_id'] ?? $table[$result['id']]['Z00_BallInPlayType_id'];
+                    // dd($Z00_matchupResultList_id, $Z00_location_id, $Z00_BallInPlayType_id);
+                    $updateArr['displayName'] = tools::getDisplayName(
+                        Z00_matchupResultList_id: $Z00_matchupResultList_id,
+                        Z00_location_id: $Z00_location_id,
+                        Z00_BallInPlayType_id: $Z00_BallInPlayType_id,
+                    );
+                }
+                // return $updateArr;
                 B21_batterResult::where('id', $result['id'])->update($updateArr);
             }
             // return [$updateArr, $updateLog];
 
             // 如果有修改打擊結果或打點，則更新打者逐場打擊紀錄
             if ($updateLog == 1) {
-                $this->B21_gameLogBatterUpdate($request->input('game_id'));
+                tools::B21_gameLogBatterUpdate($request->input('game_id'));
             }
 
             DB::commit();
@@ -225,65 +252,12 @@ class B21_battingResult extends Controller
 
             // 更新打者逐場打擊紀錄
             foreach ($tableGameId as $game_id) {
-                $this->B21_gameLogBatterUpdate($game_id);
+                tools::B21_gameLogBatterUpdate($game_id);
             }
 
             return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }
-    }
-
-    public function B21_gameLogBatterUpdate($game_id)
-    {
-        $Z00_matchupResultList = Z00_matchupResultList::select('id', 'code', 'isAtBat', 'isHit', 'isOnBase', 'totalBases')
-            ->get()
-            ->keyBy('id');
-        $B21_batterResult = B21_batterResult::where('game_id', $game_id)->get();
-
-        $B21_gameLogBatterUpdateArr = [
-            'PA'     => 0,
-            'AB'     => 0,
-            'RBI'    => 0,
-            'single' => 0,
-            'double' => 0,
-            'triple' => 0,
-            'HR'     => 0,
-            'BB'     => 0,
-            'IBB'    => 0,
-            'HBP'    => 0,
-            'SO'     => 0,
-            'SH'     => 0,
-            'SF'     => 0,
-        ];
-
-        foreach ($B21_batterResult as $batterResult) {
-            $matchupResult = $Z00_matchupResultList[$batterResult['Z00_matchupResultList_id']];
-            $B21_gameLogBatterUpdateArr['RBI'] += $batterResult['RBI'];
-            $B21_gameLogBatterUpdateArr['PA'] += 1;
-
-            // 打數
-            if (((int)$matchupResult['isAtBat']) === 1) {
-                $B21_gameLogBatterUpdateArr['AB'] += 1;
-            }
-
-            match ($matchupResult['id']) {
-                1, 2, 3, 15, 16, 17 => null, // 未列入統計欄位
-                4 => $B21_gameLogBatterUpdateArr['single'] += 1, // 1B
-                5 => $B21_gameLogBatterUpdateArr['double'] += 1, // 2B
-                6 => $B21_gameLogBatterUpdateArr['triple'] += 1, // 3B
-                7 => $B21_gameLogBatterUpdateArr['HR'] += 1, // HR
-                8 => $B21_gameLogBatterUpdateArr['SF'] += 1, // 高飛犧牲打
-                9 => $B21_gameLogBatterUpdateArr['SH'] += 1, // 犧牲觸擊
-                10 => $B21_gameLogBatterUpdateArr['SO'] += 1, // 三振
-                11 => $B21_gameLogBatterUpdateArr['SO'] += 1, // 不死三振
-                12 => $B21_gameLogBatterUpdateArr['BB'] += 1, // 四壞球
-                13 => $B21_gameLogBatterUpdateArr['IBB'] += 1, // 故意四壞球
-                14 => $B21_gameLogBatterUpdateArr['HBP'] += 1, // 觸身球
-            };
-        }
-
-        B21_gameLogBatter::where('game_id', $game_id)->update($B21_gameLogBatterUpdateArr);
-        return $B21_gameLogBatterUpdateArr;
     }
 }

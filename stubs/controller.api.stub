@@ -38,7 +38,7 @@ class {{ class }} extends Controller
             //     $table  = $table->paginate($skip_paginate);
             //     $output = $table->getCollection()->transform(function ($value) {
             //         return [
-            //              //
+            //             //
             //         ];
             //     });
             //     $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
@@ -47,7 +47,7 @@ class {{ class }} extends Controller
             //     $table = $table->get();
             //     $output = $table->transform(function ($value) {
             //         return [
-            //              //
+            //             //
             //         ];
             //     });
             // }

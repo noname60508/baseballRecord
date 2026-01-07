@@ -8,6 +8,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Utils\tools;
+
+use App\Models\B00\B10\B11_games;
 use App\Models\B00\B20\B21_batterResult;
 use App\Models\B00\B20\B21_gameLogBatter;
 use App\Models\Z00\Z00_matchupResultList;
@@ -24,10 +27,26 @@ class B21_battingStatistics extends Controller
         // 參數驗證
         $validator = Validator::make($request->all(), [
             // 驗證規則
-            'CaseNo' => ['required', 'string'],
+            'Z00_season_id'     => ['nullable', 'integer'],
+            'Z00_team_id'       => ['nullable', 'integer'],
+            'Z00_team_id_enemy' => ['nullable', 'integer'],
+            'Z00_field_id'      => ['nullable', 'integer'],
+            'gameDate'          => ['nullable', 'array', 'size:2'],
+            'gameDate.*'        => ['nullable', 'date'],
+            'gameResult'        => ['nullable', 'in:1,2,3'],
+            'orderBy'           => ['nullable', 'array'],
+            'orderBy.*'         => ['nullable', 'in:desc,asc'],
         ], [
             // 自訂回傳錯誤訊息
-            'CaseNo' => '【CaseNo:案件編號】必填且須為字串',
+            'Z00_season_id'     => '【Z00_season_id:賽季ID】須為整數',
+            'Z00_team_id'       => '【Z00_team_id:球隊ID】須為整數',
+            'Z00_team_id_enemy' => '【Z00_team_id_enemy:對手球隊ID】須為整數',
+            'Z00_field_id'      => '【Z00_field_id:場地ID】須為整數',
+            'gameDate'          => '【gameDate:比賽日期】需為陣列，且包含兩個日期值',
+            'gameDate.*'        => '【gameDate:比賽日期】陣列中的每個值皆需為日期格式',
+            'gameResult'        => '【gameResult:比賽結果】僅能為1(勝)、2(敗)、3(和)',
+            'orderBy'           => '【orderBy:排序方式】需為陣列',
+            'orderBy.*'         => '【orderBy:排序方式】陣列中的每個值僅能為asc(升冪)、desc(降冪)',
         ]);
         // 錯誤回傳
         if ($validator->fails()) {
@@ -35,27 +54,119 @@ class B21_battingStatistics extends Controller
         }
 
         try {
+            $table = B11_games::select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
+                ->with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName', 'batterGameLog', 'batterResult'])
+                ->where('user_id', $request->user()->id)
+                ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
+                    $query->where('Z00_season_id', $request->input('Z00_season_id'));
+                })
+                ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
+                    $query->where('Z00_team_id', $request->input('Z00_team_id'));
+                })
+                ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
+                    $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
+                })
+                ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
+                    $query->where('Z00_field_id', $request->input('Z00_field_id'));
+                })
+                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                    $query->whereBetween('gameDate', $request->input('gameDate'));
+                })
+                ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
+                    $query->where('gameResult', $request->input('gameResult'));
+                });
+
+            if ($request->has('orderBy')) {
+                foreach ($request->input('orderBy') as $column => $direction) {
+                    $table->orderBy($column, $direction);
+                }
+            } else {
+                $table->orderBy('gameDate', 'desc')
+                    ->orderBy('startTime', 'desc');
+            }
+            // return $table->get();
+
             $output = [];
             //分頁清單
-            // if ($request->has('page') && $request->input('page', 1) > 0) {
-            //     //分頁清單
-            //     $skip_paginate = (int) ($request->paginate_rows ?? $this->paginate_rows);
-            //     $table  = $table->paginate($skip_paginate);
-            //     $output = $table->getCollection()->transform(function ($value) {
-            //         return [
-            //              //
-            //         ];
-            //     });
-            //     $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
-            // } else {
-            //     //不分頁清單
-            //     $table = $table->get();
-            //     $output = $table->transform(function ($value) {
-            //         return [
-            //              //
-            //         ];
-            //     });
-            // }
+            if ($request->has('page') && $request->input('page', 1) > 0) {
+                //分頁清單
+                $skip_paginate = (int) ($request->paginate_rows ?? $this->paginate_rows);
+                $table  = $table->paginate($skip_paginate);
+                $output = $table->getCollection()->transform(function ($value) {
+                    foreach (collect($value->batterResult)->toArray() as $resultValue) {
+                        $result[] = [
+                            'id'                       => $resultValue['id'],
+                            'orderNo'                  => $resultValue['orderNo'] ?? null,
+                            'pitcher'                  => $resultValue['pitcher'] ?? null,
+                            'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
+                            'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
+                            'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
+                            'RBI'                      => $resultValue['RBI'] ?? null,
+                            'displayName'              => $resultValue['displayName'] ?? null,
+                        ];
+                    }
+                    return [
+                        'gameId' => $value->id,
+                        'PA'     => $value->batterGameLog['PA'] ?? 0,
+                        'AB'     => $value->batterGameLog['AB'] ?? 0,
+                        'RBI'    => $value->batterGameLog['RBI'] ?? 0,
+                        'R'      => $value->batterGameLog['R'] ?? 0,
+                        'single' => $value->batterGameLog['single'] ?? 0,
+                        'double' => $value->batterGameLog['double'] ?? 0,
+                        'triple' => $value->batterGameLog['triple'] ?? 0,
+                        'HR'     => $value->batterGameLog['HR'] ?? 0,
+                        'BB'     => $value->batterGameLog['BB'] ?? 0,
+                        'IBB'    => $value->batterGameLog['IBB'] ?? 0,
+                        'HBP'    => $value->batterGameLog['HBP'] ?? 0,
+                        'SO'     => $value->batterGameLog['SO'] ?? 0,
+                        'SH'     => $value->batterGameLog['SH'] ?? 0,
+                        'SF'     => $value->batterGameLog['SF'] ?? 0,
+                        'SB'     => $value->batterGameLog['SB'] ?? 0,
+                        'CS'     => $value->batterGameLog['CS'] ?? 0,
+
+                        'result' => $result ?? [],
+                    ];
+                });
+                $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
+            } else {
+                //不分頁清單
+                $table = $table->get();
+                $output = $table->transform(function ($value) {
+                    foreach (collect($value->batterResult)->toArray() as $resultValue) {
+                        $result[] = [
+                            'id'                       => $resultValue['id'],
+                            'orderNo'                  => $resultValue['orderNo'] ?? null,
+                            'pitcher'                  => $resultValue['pitcher'] ?? null,
+                            'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
+                            'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
+                            'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
+                            'RBI'                      => $resultValue['RBI'] ?? null,
+                            'displayName'              => $resultValue['displayName'] ?? null,
+                        ];
+                    }
+                    return [
+                        'gameId' => $value->id,
+                        'PA'     => $value->batterGameLog['PA'] ?? 0,
+                        'AB'     => $value->batterGameLog['AB'] ?? 0,
+                        'RBI'    => $value->batterGameLog['RBI'] ?? 0,
+                        'R'      => $value->batterGameLog['R'] ?? 0,
+                        'single' => $value->batterGameLog['single'] ?? 0,
+                        'double' => $value->batterGameLog['double'] ?? 0,
+                        'triple' => $value->batterGameLog['triple'] ?? 0,
+                        'HR'     => $value->batterGameLog['HR'] ?? 0,
+                        'BB'     => $value->batterGameLog['BB'] ?? 0,
+                        'IBB'    => $value->batterGameLog['IBB'] ?? 0,
+                        'HBP'    => $value->batterGameLog['HBP'] ?? 0,
+                        'SO'     => $value->batterGameLog['SO'] ?? 0,
+                        'SH'     => $value->batterGameLog['SH'] ?? 0,
+                        'SF'     => $value->batterGameLog['SF'] ?? 0,
+                        'SB'     => $value->batterGameLog['SB'] ?? 0,
+                        'CS'     => $value->batterGameLog['CS'] ?? 0,
+
+                        'result' => $result ?? [],
+                    ];
+                });
+            }
 
             return response()->apiResponse($output);
         } catch (\Throwable $e) {
@@ -109,17 +220,17 @@ class B21_battingStatistics extends Controller
         }
 
         try {
-            $Z00_matchupResultList = Z00_matchupResultList::select('id', 'code', 'isAtBat', 'isHit', 'isOnBase', 'totalBases')
-                ->get()
-                ->keyBy('id');
-            // return $Z00_matchupResultList;
+            if (B21_gameLogBatter::where('game_id', $request->input('game_id'))->exists()) {
+                return response()->failureMessages('本場比賽打擊紀錄已存在，無法重複新增');
+            }
 
-            $B21_gameLogBatterCreateArr = [
+            DB::beginTransaction();
+            $B21_gameLogBatter = B21_gameLogBatter::create([
                 'game_id' => $request->input('game_id'),
                 'user_id' => $request->user()->id,
-                'PA'      => count($request->input('result')),
+                'PA'      => 0,
                 'AB'      => 0,
-                'RBI'     => collect($request->result)->sum('RBI'),
+                'RBI'     => 0,
                 'R'       => $request->input('R', 0),
                 'single'  => 0,
                 'double'  => 0,
@@ -133,35 +244,14 @@ class B21_battingStatistics extends Controller
                 'SF'      => 0,
                 'SB'      => $request->input('SB', 0),
                 'CS'      => $request->input('CS', 0),
-            ];
+            ]);
 
-            if (B21_gameLogBatter::where('game_id', $request->input('game_id'))->exists()) {
-                return response()->failureMessages('本場比賽打擊紀錄已存在，無法重複新增');
-            }
-
-            DB::beginTransaction();
             foreach ($request->input('result') as $key => $result) {
-                $matchupResult = $Z00_matchupResultList[$result['Z00_matchupResultList_id']];
-
-                // 打數
-                if (((int)$matchupResult['isAtBat']) === 1) {
-                    $B21_gameLogBatterCreateArr['AB'] += 1;
-                }
-
-                match ($matchupResult['id']) {
-                    4 => $B21_gameLogBatterCreateArr['single'] += 1, // 1B
-                    5 => $B21_gameLogBatterCreateArr['double'] += 1, // 2B
-                    6 => $B21_gameLogBatterCreateArr['triple'] += 1, // 3B
-                    7 => $B21_gameLogBatterCreateArr['HR'] += 1, // HR
-                    8 => $B21_gameLogBatterCreateArr['SF'] += 1, // 高飛犧牲打
-                    9 => $B21_gameLogBatterCreateArr['SH'] += 1, // 犧牲觸擊
-                    10 => $B21_gameLogBatterCreateArr['SO'] += 1, // 三振
-                    11 => $B21_gameLogBatterCreateArr['SO'] += 1, // 不死三振
-                    12 => $B21_gameLogBatterCreateArr['BB'] += 1, // 四壞球
-                    13 => $B21_gameLogBatterCreateArr['IBB'] += 1, // 故意四壞球
-                    14 => $B21_gameLogBatterCreateArr['HBP'] += 1, // 觸身球
-                };
-
+                $displayName = tools::getDisplayName(
+                    Z00_matchupResultList_id: $result['Z00_matchupResultList_id'],
+                    Z00_location_id: $result['Z00_location_id'] ?? 0,
+                    Z00_BallInPlayType_id: $result['Z00_BallInPlayType_id'] ?? 0,
+                );
                 $B21_batterResult[] = B21_batterResult::create([
                     'game_id'                     => $request->input('game_id'),
                     'user_id'                     => $request->user()->id,
@@ -172,14 +262,14 @@ class B21_battingStatistics extends Controller
                     'RBI'                         => $result['RBI'] ?? 0,
                     'RISP'                        => $result['RISP'],
                     'orderNo'                     => $result['orderNo'],
+                    'displayName'                 => $displayName,
                 ]);
             }
 
-            $B21_gameLogBatter = B21_gameLogBatter::create($B21_gameLogBatterCreateArr);
-            $B21_gameLogBatter['battingResults'] = $B21_batterResult;
+            tools::B21_gameLogBatterUpdate($request->input('game_id'));
 
             DB::commit();
-            return response()->apiResponse($B21_gameLogBatter);
+            return response()->apiResponse();
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->apiFail($e);
@@ -258,29 +348,13 @@ class B21_battingStatistics extends Controller
             // 更新資料
             $updateArr = $request->only(['R', 'SB', 'CS']);
             foreach ($updateArr as $key => $value) {
-                if (is_null($value)) {
+                // 如果是空字串就移除，不更新
+                if (strlen(trim($value)) == 0) {
                     unset($updateArr[$key]);
                 }
             }
             $table->update($updateArr);
 
-            return response()->apiResponse();
-        } catch (\Throwable $e) {
-            return response()->apiFail($e);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(int $id)
-    {
-        // 刪除資料
-        try {
-            // ActiveModel::find($id)->delete();
             return response()->apiResponse();
         } catch (\Throwable $e) {
             return response()->apiFail($e);

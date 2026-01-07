@@ -23,10 +23,11 @@ return new class extends Migration
             $table->integer('Z00_BallInPlayType_id')->nullable()->comment('擊球型態id');
             $table->integer('RBI')->nullable()->comment('打點');
             $table->integer('RISP')->nullable()->comment('得點圈打擊0:否 1:是');
+            $table->integer('orderNo')->nullable()->comment('打席順序');
 
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***
-             * $table->integer('orderNo')->nullable()->comment('打席順序');
+             * $table->string('displayName', 255)->nullable()->comment('打擊結果展示名稱');
              */
         });
     }

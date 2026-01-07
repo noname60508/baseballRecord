@@ -47,22 +47,22 @@ class B11_gamesController extends Controller
             $table = B11_games::select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
                 ->with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName', 'batterGameLog'])
                 ->where('user_id', $request->user()->id)
-                ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id')), function ($query) use ($request) {
+                ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_season_id', $request->input('Z00_season_id'));
                 })
-                ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id')), function ($query) use ($request) {
+                ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_team_id', $request->input('Z00_team_id'));
                 })
-                ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy')), function ($query) use ($request) {
+                ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
                     $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
                 })
-                ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id')), function ($query) use ($request) {
+                ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_field_id', $request->input('Z00_field_id'));
                 })
                 ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
                     $query->whereBetween('gameDate', $request->input('gameDate'));
                 })
-                ->when($request->has('gameResult') && !is_null($request->input('gameResult')), function ($query) use ($request) {
+                ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                     $query->where('gameResult', $request->input('gameResult'));
                 });
 
