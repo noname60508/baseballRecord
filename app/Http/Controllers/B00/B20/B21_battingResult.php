@@ -17,24 +17,6 @@ use function PHPUnit\Framework\isInt;
 
 class B21_battingResult extends Controller
 {
-
-    public $resultId;
-    public function __construct()
-    {
-        $this->resultId = [
-            4  => 'single', // 1B
-            5  => 'double', // 2B
-            6  => 'triple', // 3B
-            7  => 'HR', // HR
-            8  => 'SF', // 高飛犧牲打
-            9  => 'SH', // 犧牲觸擊
-            10 => 'SO', // 三振
-            11 => 'SO', // 不死三振
-            12 => 'BB', // 四壞球
-            13 => 'IBB', // 故意四壞球
-            14 => 'HBP', // 觸身球
-        ];
-    }
     /**
      * Store a newly created resource in storage.
      *

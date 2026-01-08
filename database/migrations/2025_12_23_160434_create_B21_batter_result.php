@@ -19,8 +19,8 @@ return new class extends Migration
             $table->integer('user_id')->nullable()->comment('使用者id');
             $table->string('pitcher')->nullable()->comment('投手名稱');
             $table->integer('Z00_matchupResultList_id')->nullable()->comment('打擊結果id');
-            $table->integer('Z00_location_id')->nullable()->comment('擊球落點id');
-            $table->integer('Z00_BallInPlayType_id')->nullable()->comment('擊球型態id');
+            $table->integer('Z00_location_id')->default(0)->comment('擊球落點id');
+            $table->integer('Z00_BallInPlayType_id')->default(0)->comment('擊球型態id');
             $table->integer('RBI')->nullable()->comment('打點');
             $table->integer('RISP')->nullable()->comment('得點圈打擊0:否 1:是');
             $table->integer('orderNo')->nullable()->comment('打席順序');

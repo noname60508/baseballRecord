@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
+use App\Http\Controllers\B00\B20\B21_battingStatistics;
+
 use App\Models\B00\B10\B11_games;
 
 class B11_gamesController extends Controller
@@ -272,7 +274,23 @@ class B11_gamesController extends Controller
                 'enemyScore'        => $table->enemyScore ?? null,
                 'memo'              => $table->memo ?? null,
             ];
-            return response()->apiResponse($data);
+
+            $B21_battingStatistics = new B21_battingStatistics();
+            $battingStatistics = $B21_battingStatistics->show($table->id)->getData();
+            // return $battingStatistics;
+            if (!empty($battingStatistics->result)) {
+                $battingStatistics = collect($battingStatistics->result)->toArray();
+                $batterResult = $battingStatistics['batterResult'];
+                unset($battingStatistics['batterResult']);
+            }
+
+            $output = [
+                'gameDate' => $data,
+                'battingStatistics' => $battingStatistics ?? [],
+                'batterResult' => $batterResult ?? [],
+            ];
+
+            return response()->apiResponse($output);
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }

@@ -282,28 +282,57 @@ class B21_battingStatistics extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(int $id)
+    public function show(int $game_id)
     {
-        // 參數驗證
-        $validator = Validator::make([
-            'id' => $id,
-        ], [
-            // 驗證規則
-            'id' => ['required', 'integer'],
-
-        ], [
-            // 自訂回傳錯誤訊息
-            'id.required' => '【id:流水號】必須指定',
-            'id.integer'  => '【id:流水號】必須為整數',
-        ]);
-        // 錯誤回傳
-        if ($validator->fails()) {
-            return response()->failureMessages($validator->errors());
-        }
-
         try {
-            $data = [];
-            // $data=ActiveModel::where('id',$id)->first();
+            $table = B21_gameLogBatter::where('game_id', $game_id)
+                ->select('id', 'game_id', 'user_id', 'PA', 'AB', 'RBI', 'R', 'single', 'double', 'triple', 'HR', 'BB', 'IBB', 'HBP', 'SO', 'SH', 'SF', 'SB', 'CS')
+                ->with(['batterResult'])
+                ->first();
+
+            if (empty($table)) {
+                return response()->apiResponse();
+            }
+
+            if (!empty($table['batterResult'])) {
+                foreach ($table['batterResult'] as $key => $value) {
+                    $batterResult[] = [
+                        'id' => $value['id'],
+                        // 'game_id' => $value['game_id'],
+                        'orderNo' => $value['orderNo'],
+                        'pitcher' => $value['pitcher'],
+                        'Z00_matchupResultList_id' => $value['Z00_matchupResultList_id'],
+                        'Z00_location_id' => $value['Z00_location_id'],
+                        'Z00_BallInPlayType_id' => $value['Z00_BallInPlayType_id'],
+                        'RBI' => $value['RBI'],
+                        'displayName' => $value['displayName'],
+                        'RISP' => $value['RISP'],
+                    ];
+                }
+            }
+
+            $data = [
+                // 'id' => $table['id'],
+                'game_id' => $table['game_id'],
+                'user_id' => $table['user_id'],
+                'PA' => $table['PA'],
+                'AB' => $table['AB'],
+                'RBI' => $table['RBI'],
+                'R' => $table['R'],
+                'single' => $table['single'],
+                'double' => $table['double'],
+                'triple' => $table['triple'],
+                'HR' => $table['HR'],
+                'BB' => $table['BB'],
+                'IBB' => $table['IBB'],
+                'HBP' => $table['HBP'],
+                'SO' => $table['SO'],
+                'SH' => $table['SH'],
+                'SF' => $table['SF'],
+                'SB' => $table['SB'],
+                'CS' => $table['CS'],
+                'batterResult' => $batterResult ?? [],
+            ];
             return response()->apiResponse($data);
         } catch (\Throwable $e) {
             return response()->apiFail($e);

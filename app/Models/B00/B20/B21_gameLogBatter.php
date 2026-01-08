@@ -22,4 +22,11 @@ class B21_gameLogBatter extends Model
     // protected $fillable=[];
     // 黑名單:不可批量新增欄位
     protected $guarded = [];
+
+    public function batterResult()
+    {
+        return $this->hasMany(B21_batterResult::class, 'game_id', 'game_id')
+            ->select('id', 'game_id', 'orderNo', 'pitcher', 'Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id', 'RBI', 'displayName', 'RISP')
+            ->orderBy('B21_batterResult.orderNo', 'asc');
+    }
 }
