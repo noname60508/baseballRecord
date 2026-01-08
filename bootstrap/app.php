@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ];
 
             foreach ($names as $name) {
-                Route::middleware(['api', 'authentication'/* , 'tokenAuthentication' */])
+                Route::middleware(['api', 'authentication'])
                     ->prefix('api/' . $name)
                     ->namespace($namespace . '\\' . $name)
                     ->group(base_path('routes/api/' . $name . '_system_api.php'));

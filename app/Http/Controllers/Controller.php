@@ -11,6 +11,6 @@ abstract class Controller
 
     public function __construct()
     {
-        $this->now = Carbon::now('Asia/Taipei');
+        $this->now = Carbon::now(env('APP_TIMEZONE', 'Asia/Tokyo'));
     }
 }

@@ -47,11 +47,7 @@ return [
     |
     */
 
-    'expiration' => match (env('APP_DEBUG', false)) {
-        false   => 1440, // 1 day in minutes
-        true    => null,
-        default => null,
-    },
+    'expiration' => null,
 
     /*
     |--------------------------------------------------------------------------

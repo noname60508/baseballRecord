@@ -131,7 +131,8 @@ class A11_authController extends Controller
                 return response()->failureMessages(['帳號或密碼錯誤']);
             }
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $expiresAt = Carbon::now(env('APP_TIMEZONE', 'Asia/Tokyo'))->addSeconds(config('envDefault.tokenExpire'));
+            $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
             User::where('id', $user->id)->update([
                 'lastLoginAt'  => $this->now,
                 'lastLoginIp'  => $request->ip(),

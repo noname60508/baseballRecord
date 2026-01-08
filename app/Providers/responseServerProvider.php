@@ -31,7 +31,7 @@ class responseServerProvider extends ServiceProvider
                 return Response::json(responseServerProvider::apiResponse(200, $data), 200);
             } else {
                 return Response::json(responseServerProvider::apiResponse(200, $data), 200)
-                    ->header('Authorization', $token);
+                    ->header('Authorization', 'Bearer ' . $token);
             }
         });
 
