@@ -8,14 +8,17 @@ Route::get('hello', function () {
 });
 
 Route::prefix('B10')->namespace('B10')->group(function () {
-    // Route::prefix('B11_gamesController')->group(function () {
-    //     // 修改密碼
-    //     Route::post('changePassword', 'B11_gamesController@changePassword');
-    // });
     Route::apiResource('B11_gamesController', 'B11_gamesController');
 });
 
 Route::prefix('B20')->namespace('B20')->group(function () {
+    // 打擊結果統計
+    Route::prefix('B21_battingStatistics')->group(function () {
+        // 打擊結果總計
+        Route::get('total', 'B21_battingStatistics@total');
+        // 打擊數據統計
+        Route::get('dataStatistics', 'B21_battingStatistics@dataStatistics');
+    });
     // 打擊結果
     Route::apiResource('B21_battingStatistics', 'B21_battingStatistics');
 

@@ -26,6 +26,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 2,
@@ -35,6 +36,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 3,
@@ -44,6 +46,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 4,
@@ -53,6 +56,7 @@ class resultList extends Seeder
                 'isHit' => 1,
                 'isOnBase' => 1,
                 'totalBases' => 1,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 5,
@@ -62,6 +66,7 @@ class resultList extends Seeder
                 'isHit' => 1,
                 'isOnBase' => 1,
                 'totalBases' => 2,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 6,
@@ -71,6 +76,7 @@ class resultList extends Seeder
                 'isHit' => 1,
                 'isOnBase' => 1,
                 'totalBases' => 3,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 7,
@@ -80,6 +86,7 @@ class resultList extends Seeder
                 'isHit' => 1,
                 'isOnBase' => 1,
                 'totalBases' => 4,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 8,
@@ -89,6 +96,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 9,
@@ -98,6 +106,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 0, // 犧牲觸擊計算數據時不算打進場內
             ],
             [
                 'id' => 10,
@@ -107,6 +116,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 11,
@@ -116,6 +126,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 12,
@@ -125,6 +136,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 1,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 13,
@@ -134,6 +146,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 1,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 14,
@@ -143,6 +156,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 1,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 15,
@@ -152,6 +166,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 0,
             ],
             [
                 'id' => 16,
@@ -161,6 +176,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
             [
                 'id' => 17,
@@ -170,6 +186,7 @@ class resultList extends Seeder
                 'isHit' => 0,
                 'isOnBase' => 0,
                 'totalBases' => 0,
+                'ballInPlay' => 1,
             ],
         ];
         foreach ($Z00_matchupResultList as $key => $data) {
@@ -197,7 +214,12 @@ class resultList extends Seeder
             [
                 'id' => 3,
                 'code' => 'FB',
-                'name' => '高飛球',
+                'name' => '飛球',
+            ],
+            [
+                'id' => 4,
+                'code' => 'PU',
+                'name' => '內野高飛球',
             ],
         ];
         foreach ($Z00_ballInPlayType as $key => $data) {
@@ -215,92 +237,114 @@ class resultList extends Seeder
             [
                 'id' => 1,
                 'code' => 'P',
-                'name' => '投',
+                'name' => '投手',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 2,
                 'code' => 'C',
-                'name' => '捕',
+                'name' => '捕手',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 3,
                 'code' => '1B',
                 'name' => '一壘',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 4,
                 'code' => '2B',
                 'name' => '二壘',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 5,
                 'code' => '3B',
                 'name' => '三壘',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 6,
                 'code' => 'SS',
                 'name' => '游擊',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 7,
                 'code' => 'LF',
                 'name' => '左外野',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 8,
                 'code' => 'CF',
                 'name' => '中外野',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 9,
                 'code' => 'RF',
                 'name' => '右外野',
                 'isPosition' => 1,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 10,
                 'code' => 'LCF',
                 'name' => '左中外野',
                 'isPosition' => 0,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 11,
                 'code' => 'RCF',
                 'name' => '中右外野',
                 'isPosition' => 0,
+                'isFairBall' => 1,
             ],
             [
                 'id' => 12,
                 'code' => '1BFoul',
                 'name' => '一壘界外',
                 'isPosition' => 0,
+                'isFairBall' => 0,
             ],
             [
                 'id' => 13,
                 'code' => '3BFoul',
                 'name' => '三壘界外',
                 'isPosition' => 0,
+                'isFairBall' => 0,
             ],
             [
                 'id' => 14,
                 'code' => 'LFFoul',
                 'name' => '左外野界外',
                 'isPosition' => 0,
+                'isFairBall' => 0,
             ],
             [
                 'id' => 15,
-                'code' => 'RFLFoul',
+                'code' => 'RFFoul',
                 'name' => '右外野界外',
                 'isPosition' => 0,
+                'isFairBall' => 0,
+            ],
+            [
+                'id' => 16,
+                'code' => 'CFoul',
+                'name' => '捕手後方界外',
+                'isPosition' => 0,
+                'isFairBall' => 0,
             ],
         ];
 

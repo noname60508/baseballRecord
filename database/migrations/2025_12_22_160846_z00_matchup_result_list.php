@@ -21,8 +21,8 @@ return new class extends Migration
             $table->integer('isHit')->nullable()->comment('是否計算打擊率');
             $table->integer('isOnBase')->nullable()->comment('是否計算上壘率');
             $table->integer('totalBases')->nullable()->comment('安打壘包數');
+            $table->integer('ballInPlay')->nullable()->comment('球是否打進場內(1:是 0:否)');
             $table->integer('orderNo')->nullable()->comment('排序');
-
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***
              */
