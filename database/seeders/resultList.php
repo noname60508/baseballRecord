@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Z00\Z00_matchupResultList;
 use App\Models\Z00\Z00_ballInPlayType;
 use App\Models\Z00\Z00_positionAndLocation;
+use App\Models\Z00\Z00_matchupOptions;
 
 class resultList extends Seeder
 {
@@ -27,6 +28,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ],
             [
                 'id' => 2,
@@ -37,6 +40,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 3,
@@ -47,6 +52,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 4,
@@ -57,6 +64,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 1,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 5,
@@ -67,6 +76,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 2,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 6,
@@ -77,6 +88,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 3,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 7,
@@ -87,6 +100,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 4,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ],
             [
                 'id' => 8,
@@ -97,6 +112,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ],
             [
                 'id' => 9,
@@ -107,6 +124,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 0, // 犧牲觸擊計算數據時不算打進場內
+                'ballTypeOptions' => [1],
+                'locationOptions' => [1, 2, 3, 4, 5, 6],
             ],
             [
                 'id' => 10,
@@ -117,6 +136,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 11,
@@ -127,6 +148,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 12,
@@ -137,6 +160,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 13,
@@ -147,6 +172,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 14,
@@ -157,6 +184,8 @@ class resultList extends Seeder
                 'isOnBase' => 1,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 15,
@@ -167,6 +196,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 0,
+                'ballTypeOptions' => [0],
+                'locationOptions' => [0],
             ],
             [
                 'id' => 16,
@@ -177,6 +208,8 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ],
             [
                 'id' => 17,
@@ -187,15 +220,30 @@ class resultList extends Seeder
                 'isOnBase' => 0,
                 'totalBases' => 0,
                 'ballInPlay' => 1,
+                'ballTypeOptions' => [1, 2, 3, 4],
+                'locationOptions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ],
         ];
         foreach ($Z00_matchupResultList as $key => $data) {
             $id = $data['id'];
             unset($data['id']);
+            $ballTypeOptions = implode(',', $data['ballTypeOptions']);
+            $locationOptions = implode(',', $data['locationOptions']);
+            unset($data['ballTypeOptions']);
+            unset($data['locationOptions']);
+
             $data['orderNo'] = $key + 1;
             Z00_matchupResultList::updateOrCreate(
                 ['id' => $id],
                 $data
+            );
+
+            Z00_matchupOptions::updateOrCreate(
+                ['Z00_matchupResultList_id' => $id],
+                [
+                    'ballTypeOptions' => $ballTypeOptions,
+                    'locationOptions' => $locationOptions,
+                ]
             );
         }
 

@@ -398,7 +398,7 @@ class B21_battingStatistics extends Controller
         }
     }
 
-    public function total(Request $request)
+    public function dataStatistics(Request $request)
     {
         // 參數驗證
         $validator = $this->indexValidator($request);
@@ -408,8 +408,30 @@ class B21_battingStatistics extends Controller
         }
 
         try {
-            $table = B21_gameLogBatter::where('user_id', $request->user()->id)
-                ->selectRaw("
+            $B21_gameLogBatterStatistics = $this->B21_gameLogBatterStatistics($request);
+            $B21_batterResultStatistics = $this->B21_batterResultStatistics($request);
+            $statistics = array_merge($B21_gameLogBatterStatistics['statistics'], [
+                'RISP_AVG' => $B21_batterResultStatistics['RISP_AVG'],
+            ]);
+            // return [$B21_gameLogBatterStatistics, $B21_batterResultStatistics];
+
+            $output = [
+                'total' => $B21_gameLogBatterStatistics['total'],
+                'statistics' => $statistics,
+                'BIP' => $B21_batterResultStatistics['BIP'],
+                'distribution' => $B21_batterResultStatistics['distribution'],
+            ];
+
+            return response()->apiResponse($output);
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
+
+    public function B21_gameLogBatterStatistics(Request $request)
+    {
+        $table = B21_gameLogBatter::where('B11_games.user_id', $request->user()->id)
+            ->selectRaw("
                     count(1) as gamesPlayed,
                     sum(PA) as PA,
                     sum(AB) as AB,
@@ -427,180 +449,168 @@ class B21_battingStatistics extends Controller
                     sum(SF) as SF,
                     sum(SB) as SB,
                     sum(CS) as CS
-                ")->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_season_id', $request->input('Z00_season_id'));
-                })
-                ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_team_id', $request->input('Z00_team_id'));
-                })
-                ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
-                    $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
-                })
-                ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_field_id', $request->input('Z00_field_id'));
-                })
-                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                    $query->whereBetween('gameDate', $request->input('gameDate'));
-                })
-                ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
-                    $query->where('gameResult', $request->input('gameResult'));
-                })
-                ->first();
+                ")
+            ->leftJoin('B11_games', 'B21_gameLogBatter.game_id', '=', 'B11_games.id')
+            ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_season_id', $request->input('Z00_season_id'));
+            })
+            ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_team_id', $request->input('Z00_team_id'));
+            })
+            ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
+                $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
+            })
+            ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_field_id', $request->input('Z00_field_id'));
+            })
+            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                $query->whereBetween('gameDate', $request->input('gameDate'));
+            })
+            ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
+                $query->where('gameResult', $request->input('gameResult'));
+            })
+            ->whereNull('B11_games.deleted_at')
+            ->first();
 
-            $output['total'] = [
-                'gamesPlayed' => (int)$table->gamesPlayed ?? 0,
-                'PA'          => (int)$table->PA ?? 0,
-                'AB'          => (int)$table->AB ?? 0,
-                'RBI'         => (int)$table->RBI ?? 0,
-                'R'           => (int)$table->R ?? 0,
-                'single'      => (int)$table->single ?? 0,
-                'double'      => (int)$table->double ?? 0,
-                'triple'      => (int)$table->triple ?? 0,
-                'HR'          => (int)$table->HR ?? 0,
-                'BB'          => (int)$table->BB ?? 0,
-                'IBB'         => (int)$table->IBB ?? 0,
-                'HBP'         => (int)$table->HBP ?? 0,
-                'SO'          => (int)$table->SO ?? 0,
-                'SH'          => (int)$table->SH ?? 0,
-                'SF'          => (int)$table->SF ?? 0,
-                'SB'          => (int)$table->SB ?? 0,
-                'CS'          => (int)$table->CS ?? 0,
-            ];
+        $output['total'] = [
+            'gamesPlayed' => (int)$table->gamesPlayed ?? 0,
+            'PA'          => (int)$table->PA ?? 0,
+            'AB'          => (int)$table->AB ?? 0,
+            'RBI'         => (int)$table->RBI ?? 0,
+            'R'           => (int)$table->R ?? 0,
+            'single'      => (int)$table->single ?? 0,
+            'double'      => (int)$table->double ?? 0,
+            'triple'      => (int)$table->triple ?? 0,
+            'HR'          => (int)$table->HR ?? 0,
+            'BB'          => (int)$table->BB ?? 0,
+            'IBB'         => (int)$table->IBB ?? 0,
+            'HBP'         => (int)$table->HBP ?? 0,
+            'SO'          => (int)$table->SO ?? 0,
+            'SH'          => (int)$table->SH ?? 0,
+            'SF'          => (int)$table->SF ?? 0,
+            'SB'          => (int)$table->SB ?? 0,
+            'CS'          => (int)$table->CS ?? 0,
+        ];
 
-            $hit = ($table->single ?? 0) + ($table->double ?? 0) + ($table->triple ?? 0) + ($table->HR ?? 0);
-            $avg = $table->PA > 0 ? round($hit / $table->AB, 3) : 0;
-            $OBP = $table->PA > 0 ? round(($hit + $table->BB + $table->IBB + $table->HBP) / ($table->AB + $table->BB + $table->IBB + $table->HBP + $table->SF), 3) : 0;
-            $SLG = $table->PA > 0 ? round(($table->single + (2 * $table->double) + (3 * $table->triple) + (4 * $table->HR)) / $table->AB, 3) : 0;
-            $OPS = $table->PA > 0 ? round($OBP + $SLG, 3) : 0;
-            $output['statistics'] = [
-                'AVG' => $avg,
-                'OBP' => $OBP,
-                'SLG' => $SLG,
-                'OPS' => $OPS,
-                'KPercentage' => $table->PA > 0 ? round($table->SO / $table->PA * 100, 3)  : 0,
-                'BBPercentage' => $table->PA > 0 ? round(($table->BB + $table->IBB) / $table->PA * 100, 3) : 0,
-                'SBPercentage' => ($table->SB + $table->CS) > 0 ? round($table->SB / ($table->SB + $table->CS) * 100, 3) : 0,
-            ];
+        $hit = ($table->single ?? 0) + ($table->double ?? 0) + ($table->triple ?? 0) + ($table->HR ?? 0);
+        $avg = $table->PA > 0 ? round($hit / $table->AB, 3) : 0;
+        $OBP = $table->PA > 0 ? round(($hit + $table->BB + $table->IBB + $table->HBP) / ($table->AB + $table->BB + $table->IBB + $table->HBP + $table->SF), 3) : 0;
+        $SLG = $table->PA > 0 ? round(($table->single + (2 * $table->double) + (3 * $table->triple) + (4 * $table->HR)) / $table->AB, 3) : 0;
+        $OPS = $table->PA > 0 ? round($OBP + $SLG, 3) : 0;
+        $output['statistics'] = [
+            'AVG' => $avg,
+            'OBP' => $OBP,
+            'SLG' => $SLG,
+            'OPS' => $OPS,
+            'KPercentage' => $table->PA > 0 ? round($table->SO / $table->PA * 100, 3)  : 0,
+            'BBPercentage' => $table->PA > 0 ? round(($table->BB + $table->IBB) / $table->PA * 100, 3) : 0,
+            'SBPercentage' => ($table->SB + $table->CS) > 0 ? round($table->SB / ($table->SB + $table->CS) * 100, 3) : 0,
+        ];
 
-            return response()->apiResponse($output);
-        } catch (\Throwable $e) {
-            return response()->apiFail($e);
-        }
+        return $output;
     }
 
-    public function dataStatistics(Request $request)
+    public function B21_batterResultStatistics(Request $request)
     {
-        // 參數驗證
-        $validator = $this->indexValidator($request);
-        // 錯誤回傳
-        if ($validator->fails()) {
-            return response()->failureMessages($validator->errors());
-        }
+        $table = B21_batterResult::where('B11_games.user_id', $request->user()->id)
+            ->leftJoin('B11_games', 'B11_games.id', '=', 'B21_batterResult.game_id')
+            ->leftJoin('Z00_matchupResultList', 'B21_batterResult.Z00_matchupResultList_id', '=', 'Z00_matchupResultList.id')
+            ->leftJoin('Z00_positionAndLocation', 'B21_batterResult.Z00_location_id', '=', 'Z00_positionAndLocation.id')
+            ->select('Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id', 'RISP', 'isAtBat', 'isHit', 'isOnBase', 'totalBases', 'ballInPlay', 'isFairBall')
+            ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_season_id', $request->input('Z00_season_id'));
+            })
+            ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_team_id', $request->input('Z00_team_id'));
+            })
+            ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
+                $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
+            })
+            ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
+                $query->where('Z00_field_id', $request->input('Z00_field_id'));
+            })
+            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                $query->whereBetween('gameDate', $request->input('gameDate'));
+            })
+            ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
+                $query->where('gameResult', $request->input('gameResult'));
+            })
+            ->whereNull('B11_games.deleted_at')
+            ->get();
 
-        try {
-            $table = B11_games::where('B11_games.user_id', $request->user()->id)
-                ->leftJoin('B21_batterResult', 'B11_games.id', '=', 'B21_batterResult.game_id')
-                ->leftJoin('Z00_matchupResultList', 'B21_batterResult.Z00_matchupResultList_id', '=', 'Z00_matchupResultList.id')
-                ->leftJoin('Z00_positionAndLocation', 'B21_batterResult.Z00_location_id', '=', 'Z00_positionAndLocation.id')
-                ->select('Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id', 'RISP', 'isAtBat', 'isHit', 'isOnBase', 'totalBases', 'ballInPlay', 'isFairBall')
-                ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_season_id', $request->input('Z00_season_id'));
-                })
-                ->when($request->has('Z00_team_id') && !is_null($request->input('Z00_team_id') && $request->input('Z00_team_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_team_id', $request->input('Z00_team_id'));
-                })
-                ->when($request->has('Z00_team_id_enemy') && !is_null($request->input('Z00_team_id_enemy') && $request->input('Z00_team_id_enemy') != ''), function ($query) use ($request) {
-                    $query->where('Z00_team_id_enemy', $request->input('Z00_team_id_enemy'));
-                })
-                ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
-                    $query->where('Z00_field_id', $request->input('Z00_field_id'));
-                })
-                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                    $query->whereBetween('gameDate', $request->input('gameDate'));
-                })
-                ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
-                    $query->where('gameResult', $request->input('gameResult'));
-                })
-                ->whereNotNull('B21_batterResult.id')
-                ->whereNull('B21_batterResult.deleted_at')
-                ->get();
+        // return $table;
 
-            // return $table;
+        // 得點圈打擊率預設值
+        $RISP_AB = 0;
+        $RISP_hit = 0;
 
-            // 得點圈打擊率預設值
-            $RISP_AB = 0;
-            $RISP_hit = 0;
-
-            // 打擊型態BIP分布預設值
-            foreach (Z00_ballInPlayType::select('id', 'code', 'name')->get() as $value) {
-                $ballInPlay[$value->id] = [
-                    'code' => $value->code,
-                    'name' => $value->name,
-                    'sum' => 0,
-                ];
-            };
-            $BIP_total = 0;
-
-            // 擊球分布預設值
-            foreach (Z00_positionAndLocation::select('id', 'code', 'name')->where('isFairBall', 1)->get() as $value) {
-                $location[$value->id] = [
-                    'code' => $value->code,
-                    'name' => $value->name,
-                    'hit' => 0,
-                    'sum' => 0,
-                ];
-            };
-            $location_total = 0;
-
-            foreach ($table as $key => $value) {
-                // 計算得點圈打擊率
-                if ($value['RISP'] == 1) {
-                    $value['isAtBat'] == 1 ? $RISP_AB++ : '';
-                    $value['isHit'] == 1 ? $RISP_hit++ : '';
-                }
-
-                // 計算打擊型態BIP分布(全壘打不列入計算) && 計算擊球分布
-                if ($value['ballInPlay'] == 1 && $value['isFairBall'] == 1 && $value['Z00_matchupResultList_id'] != 7) {
-                    // 打擊型態
-                    $BIP_total++;
-                    $ballInPlay[$value['Z00_BallInPlayType_id']]['sum']++;
-
-                    // 擊球分布
-                    $location_total++;
-                    $location[$value['Z00_location_id']]['sum']++;
-                    $value['isHit'] == 1 ? $location[$value['Z00_location_id']]['hit']++ : '';
-                }
-            }
-
-            // 計算打擊型態百分比
-            foreach ($ballInPlay as $key => $value) {
-                $BIP[$value['code']] = [
-                    'name' => $value['name'],
-                    'sum' => $value['sum'],
-                    'percentage' => $BIP_total > 0 ? round($value['sum'] / $BIP_total * 100, 2) : 0,
-                ];
-            }
-
-            // 計算擊球分布百分比
-            foreach ($location as $key => $value) {
-                $distribution[$value['code']] = [
-                    'name' => $value['name'],
-                    'hit' => $value['hit'],
-                    'sum' => $value['sum'],
-                    'percentage' => $location_total > 0 ? round($value['sum'] / $location_total * 100, 2) : 0,
-                    'locationAVG' => $value['sum'] > 0 ? round($value['hit'] / $value['sum'], 3) : 0,
-                ];
-            }
-
-            $output = [
-                'RISP_AVG' => $RISP_AB > 0 ? round($RISP_hit / $RISP_AB, 3) : 0,
-                'BIP' => $BIP ?? [],
-                'distribution' => $distribution ?? [],
+        // 打擊型態BIP分布預設值
+        foreach (Z00_ballInPlayType::select('id', 'code', 'name')->get() as $value) {
+            $ballInPlay[$value->id] = [
+                'code' => $value->code,
+                'name' => $value->name,
+                'sum' => 0,
             ];
+        };
+        $BIP_total = 0;
 
-            return response()->apiResponse($output);
-        } catch (\Throwable $e) {
-            return response()->apiFail($e);
+        // 擊球分布預設值
+        foreach (Z00_positionAndLocation::select('id', 'code', 'name')->where('isFairBall', 1)->get() as $value) {
+            $location[$value->id] = [
+                'code' => $value->code,
+                'name' => $value->name,
+                'hit' => 0,
+                'sum' => 0,
+            ];
+        };
+        $location_total = 0;
+
+        foreach ($table as $key => $value) {
+            // 計算得點圈打擊率
+            if ($value['RISP'] == 1) {
+                $value['isAtBat'] == 1 ? $RISP_AB++ : '';
+                $value['isHit'] == 1 ? $RISP_hit++ : '';
+            }
+
+            // 計算打擊型態BIP分布(全壘打不列入計算) && 計算擊球分布
+            if ($value['ballInPlay'] == 1 && $value['isFairBall'] == 1 && $value['Z00_matchupResultList_id'] != 7) {
+                // 打擊型態
+                $BIP_total++;
+                $ballInPlay[$value['Z00_BallInPlayType_id']]['sum']++;
+
+                // 擊球分布
+                $location_total++;
+                $location[$value['Z00_location_id']]['sum']++;
+                $value['isHit'] == 1 ? $location[$value['Z00_location_id']]['hit']++ : '';
+            }
         }
+
+        // 計算打擊型態百分比
+        foreach ($ballInPlay as $key => $value) {
+            $BIP[$value['code']] = [
+                'name' => $value['name'],
+                'sum' => $value['sum'],
+                'percentage' => $BIP_total > 0 ? round($value['sum'] / $BIP_total * 100, 2) : 0,
+            ];
+        }
+
+        // 計算擊球分布百分比
+        foreach ($location as $key => $value) {
+            $distribution[$value['code']] = [
+                'name' => $value['name'],
+                'hit' => $value['hit'],
+                'sum' => $value['sum'],
+                'percentage' => $location_total > 0 ? round($value['sum'] / $location_total * 100, 2) : 0,
+                'locationAVG' => $value['sum'] > 0 ? round($value['hit'] / $value['sum'], 3) : 0,
+            ];
+        }
+
+        $output = [
+            'RISP_AVG' => $RISP_AB > 0 ? round($RISP_hit / $RISP_AB, 3) : 0,
+            'BIP' => $BIP ?? [],
+            'distribution' => $distribution ?? [],
+        ];
+
+        return $output;
     }
 }

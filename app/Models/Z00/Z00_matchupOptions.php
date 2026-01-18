@@ -7,25 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
 
-class Z00_matchupResultList extends Model
+class Z00_matchupOptions extends Model
 {
     use HasFactory;
     use SoftDeletes;
     use Userstamps;
 
-    // 資料表名稱:對決結果列表資料表
+    // 資料表名稱:對決結果對應選項資料表
 
     // 指定模型的表名
-    protected $table = 'Z00_matchupResultList';
+    protected $table = 'Z00_matchupOptions';
     // 白名單與黑名單擇一使用，即可使用create方法
     // 白名單:可批量新增欄位
     // protected $fillable=[];
     // 黑名單:不可批量新增欄位
     protected $guarded = [];
-
-    public function options()
-    {
-        return $this->hasOne(Z00_matchupOptions::class, 'Z00_matchupResultList_id', 'id')
-            ->select('id', 'Z00_matchupResultList_id', 'ballTypeOptions', 'locationOptions');
-    }
 }
