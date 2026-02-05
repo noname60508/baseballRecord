@@ -35,7 +35,8 @@ class Z00_fieldsController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->when($request->has('name') && !is_null($request->input('name')), function ($query) use ($request) {
                     $query->where('name', 'like', '%' . $request->input('name') . '%');
-                });
+                })
+                ->orderBy('id', 'desc');
             $output = [];
             //分頁清單
             if ($request->has('page') && $request->input('page', 1) > 0) {
@@ -148,7 +149,7 @@ class Z00_fieldsController extends Controller
         // 刪除資料
         try {
             $table = Z00_fields::find($id);
-            if (request()->user()->id != $table->first()->user_id) {
+            if (request()->user()->id != $table->user_id) {
                 return response()->failureMessages('無修改權限');
             }
             $table->delete();

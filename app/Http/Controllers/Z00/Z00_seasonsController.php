@@ -150,8 +150,8 @@ class Z00_seasonsController extends Controller
     {
         // 刪除資料
         try {
-            $table = Z00_seasons::where('id', $id);
-            if (request()->user()->id != $table->first()->user_id) {
+            $table = Z00_seasons::find($id);
+            if (request()->user()->id != $table->user_id) {
                 return response()->failureMessages('無刪除權限');
             }
             $table->delete();

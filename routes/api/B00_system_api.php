@@ -22,10 +22,9 @@ Route::prefix('B20')->namespace('B20')->group(function () {
 
     // 逐打席結果
     Route::prefix('B21_battingResult')->group(function () {
-        // 修改逐打席結果
-        Route::put('update', 'B21_battingResult@update');
+        // 新增/修改逐打席結果
+        Route::POST('updateOrCreate', 'B21_battingResult@updateOrCreate');
         // 刪除逐打席結果
         Route::delete('destroy', 'B21_battingResult@destroy');
     });
-    Route::apiResource('B21_battingResult', 'B21_battingResult')->only(['store']);
 });

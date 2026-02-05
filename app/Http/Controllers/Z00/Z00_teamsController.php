@@ -164,8 +164,8 @@ class Z00_teamsController extends Controller
     {
         // 刪除資料
         try {
-            $table = Z00_teams::where('id', $id);
-            if (request()->user()->id != $table->first()->user_id) {
+            $table = Z00_teams::find($id);
+            if (request()->user()->id != $table->user_id) {
                 return response()->failureMessages('無刪除權限');
             }
             $table->delete();

@@ -57,7 +57,7 @@ class resultList extends Seeder
             ],
             [
                 'id' => 4,
-                'code' => '1B',
+                'code' => 'single',
                 'name' => '一壘安打',
                 'isAtBat' => 1,
                 'isHit' => 1,
@@ -69,7 +69,7 @@ class resultList extends Seeder
             ],
             [
                 'id' => 5,
-                'code' => '2B',
+                'code' => 'double',
                 'name' => '二壘安打',
                 'isAtBat' => 1,
                 'isHit' => 1,
@@ -81,7 +81,7 @@ class resultList extends Seeder
             ],
             [
                 'id' => 6,
-                'code' => '3B',
+                'code' => 'triple',
                 'name' => '三壘安打',
                 'isAtBat' => 1,
                 'isHit' => 1,

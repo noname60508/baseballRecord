@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\B00\B20\B21_battingStatistics;
 
 use App\Models\B00\B10\B11_games;
+use App\Models\B00\B20\B21_gameLogBatter;
+use Carbon\Carbon;
 
 class B11_gamesController extends Controller
 {
@@ -66,7 +68,8 @@ class B11_gamesController extends Controller
                 })
                 ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                     $query->where('gameResult', $request->input('gameResult'));
-                });
+                })
+                ->orderBy('id', 'desc');
 
             // return $table->where('id', 4)->get();
             $output = [];
@@ -218,6 +221,10 @@ class B11_gamesController extends Controller
             ]);
             // 建立資料
             $data = B11_games::create($createdArr);
+            B21_gameLogBatter::create([
+                'user_id'    => $request->user()->id,
+                'game_id'    => $data->id,
+            ]);
 
             return response()->apiResponse($data);
         } catch (\Throwable $e) {
@@ -267,8 +274,8 @@ class B11_gamesController extends Controller
                 'Z00_field_id'      => $table->Z00_field_id ?? null,
                 'fieldName'         => $table->fieldName->name ?? null,
                 'gameDate'          => $table->gameDate ?? null,
-                'startTime'         => $table->startTime ?? null,
-                'endTime'           => $table->endTime ?? null,
+                'startTime'         => $table->startTime ? Carbon::parse($table->startTime)->format('H:i') : null,
+                'endTime'           => $table->endTime ? Carbon::parse($table->endTime)->format('H:i') : null,
                 'homeAway'          => $table->homeAway ?? null,
                 'score'             => $table->score ?? null,
                 'enemyScore'        => $table->enemyScore ?? null,
@@ -277,15 +284,15 @@ class B11_gamesController extends Controller
 
             $B21_battingStatistics = new B21_battingStatistics();
             $battingStatistics = $B21_battingStatistics->show($table->id)->getData();
+            $battingStatistics = collect($battingStatistics->result)->toArray();
             // return $battingStatistics;
-            if (!empty($battingStatistics->result)) {
-                $battingStatistics = collect($battingStatistics->result)->toArray();
+            if (!empty($battingStatistics)) {
                 $batterResult = $battingStatistics['batterResult'];
                 unset($battingStatistics['batterResult']);
             }
 
             $output = [
-                'gameDate' => $data,
+                'gameData' => $data,
                 'battingStatistics' => $battingStatistics ?? [],
                 'batterResult' => $batterResult ?? [],
             ];
@@ -352,11 +359,6 @@ class B11_gamesController extends Controller
                 $updateArr['gameResult'] = $gameResult;
             }
 
-            foreach ($updateArr as $key => $value) {
-                if (is_null($value) && $value == '') {
-                    unset($updateArr[$key]);
-                }
-            }
             $table->update($updateArr);
 
             return response()->apiResponse();
