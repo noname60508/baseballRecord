@@ -62,8 +62,8 @@ class B21_battingStatistics extends Controller
         }
 
         try {
-            $table = B11_games::select('id', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
-                ->with(['seasonName', 'teamName', 'teamNameEnemy', 'fieldName', 'batterGameLog', 'batterResult'])
+            $table = B11_games::select('id', 'gameDate', 'Z00_team_id_enemy', 'Z00_season_id', 'Z00_team_id', 'Z00_team_id_enemy', 'Z00_field_id', 'gameDate', 'startTime', 'endTime', 'gameResult', 'homeAway', 'score', 'enemyScore', 'memo')
+                ->with(['teamNameEnemy', 'batterGameLog'/* , 'batterResult' */])
                 ->where('user_id', $request->user()->id)
                 ->when($request->has('Z00_season_id') && !is_null($request->input('Z00_season_id') && $request->input('Z00_season_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_season_id', $request->input('Z00_season_id'));
@@ -101,38 +101,40 @@ class B21_battingStatistics extends Controller
                 $skip_paginate = (int) ($request->paginate_rows ?? $this->paginate_rows);
                 $table  = $table->paginate($skip_paginate);
                 $output = $table->getCollection()->transform(function ($value) {
-                    foreach (collect($value->batterResult)->toArray() as $resultValue) {
-                        $result[] = [
-                            'id'                       => $resultValue['id'],
-                            'orderNo'                  => $resultValue['orderNo'] ?? null,
-                            'pitcher'                  => $resultValue['pitcher'] ?? null,
-                            'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
-                            'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
-                            'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
-                            'RBI'                      => $resultValue['RBI'] ?? null,
-                            'displayName'              => $resultValue['displayName'] ?? null,
-                        ];
-                    }
+                    // foreach (collect($value->batterResult)->toArray() as $resultValue) {
+                    //     $result[] = [
+                    //         'id'                       => $resultValue['id'],
+                    //         'orderNo'                  => $resultValue['orderNo'] ?? null,
+                    //         'pitcher'                  => $resultValue['pitcher'] ?? null,
+                    //         'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
+                    //         'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
+                    //         'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
+                    //         'RBI'                      => $resultValue['RBI'] ?? null,
+                    //         'displayName'              => $resultValue['displayName'] ?? null,
+                    //     ];
+                    // }
                     return [
-                        'gameId' => $value->id,
-                        'PA'     => $value->batterGameLog['PA'] ?? 0,
-                        'AB'     => $value->batterGameLog['AB'] ?? 0,
-                        'RBI'    => $value->batterGameLog['RBI'] ?? 0,
-                        'R'      => $value->batterGameLog['R'] ?? 0,
-                        'single' => $value->batterGameLog['single'] ?? 0,
-                        'double' => $value->batterGameLog['double'] ?? 0,
-                        'triple' => $value->batterGameLog['triple'] ?? 0,
-                        'HR'     => $value->batterGameLog['HR'] ?? 0,
-                        'BB'     => $value->batterGameLog['BB'] ?? 0,
-                        'IBB'    => $value->batterGameLog['IBB'] ?? 0,
-                        'HBP'    => $value->batterGameLog['HBP'] ?? 0,
-                        'SO'     => $value->batterGameLog['SO'] ?? 0,
-                        'SH'     => $value->batterGameLog['SH'] ?? 0,
-                        'SF'     => $value->batterGameLog['SF'] ?? 0,
-                        'SB'     => $value->batterGameLog['SB'] ?? 0,
-                        'CS'     => $value->batterGameLog['CS'] ?? 0,
+                        'gameId'        => $value->id,
+                        'gameDate'      => $value->gameDate,
+                        'teamNameEnemy' => $value->teamNameEnemy->name ?? null,
+                        'PA'            => $value->batterGameLog['PA'] ?? 0,
+                        'AB'            => $value->batterGameLog['AB'] ?? 0,
+                        'RBI'           => $value->batterGameLog['RBI'] ?? 0,
+                        'R'             => $value->batterGameLog['R'] ?? 0,
+                        'single'        => $value->batterGameLog['single'] ?? 0,
+                        'double'        => $value->batterGameLog['double'] ?? 0,
+                        'triple'        => $value->batterGameLog['triple'] ?? 0,
+                        'HR'            => $value->batterGameLog['HR'] ?? 0,
+                        'BB'            => $value->batterGameLog['BB'] ?? 0,
+                        'IBB'           => $value->batterGameLog['IBB'] ?? 0,
+                        'HBP'           => $value->batterGameLog['HBP'] ?? 0,
+                        'SO'            => $value->batterGameLog['SO'] ?? 0,
+                        'SH'            => $value->batterGameLog['SH'] ?? 0,
+                        'SF'            => $value->batterGameLog['SF'] ?? 0,
+                        'SB'            => $value->batterGameLog['SB'] ?? 0,
+                        'CS'            => $value->batterGameLog['CS'] ?? 0,
 
-                        'result' => $result ?? [],
+                        // 'result' => $result ?? [],
                     ];
                 });
                 $output = ['data' => $output, 'total_pages' => $table->lastPage(), 'paginate' => $skip_paginate, 'total' => $table->total()];
@@ -140,38 +142,40 @@ class B21_battingStatistics extends Controller
                 //不分頁清單
                 $table = $table->get();
                 $output = $table->transform(function ($value) {
-                    foreach (collect($value->batterResult)->toArray() as $resultValue) {
-                        $result[] = [
-                            'id'                       => $resultValue['id'],
-                            'orderNo'                  => $resultValue['orderNo'] ?? null,
-                            'pitcher'                  => $resultValue['pitcher'] ?? null,
-                            'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
-                            'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
-                            'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
-                            'RBI'                      => $resultValue['RBI'] ?? null,
-                            'displayName'              => $resultValue['displayName'] ?? null,
-                        ];
-                    }
+                    // foreach (collect($value->batterResult)->toArray() as $resultValue) {
+                    //     $result[] = [
+                    //         'id'                       => $resultValue['id'],
+                    //         'orderNo'                  => $resultValue['orderNo'] ?? null,
+                    //         'pitcher'                  => $resultValue['pitcher'] ?? null,
+                    //         'Z00_matchupResultList_id' => $resultValue['Z00_matchupResultList_id'] ?? null,
+                    //         'Z00_location_id'          => $resultValue['Z00_location_id'] ?? null,
+                    //         'Z00_BallInPlayType_id'    => $resultValue['Z00_BallInPlayType_id'] ?? null,
+                    //         'RBI'                      => $resultValue['RBI'] ?? null,
+                    //         'displayName'              => $resultValue['displayName'] ?? null,
+                    //     ];
+                    // }
                     return [
-                        'gameId' => $value->id,
-                        'PA'     => $value->batterGameLog['PA'] ?? 0,
-                        'AB'     => $value->batterGameLog['AB'] ?? 0,
-                        'RBI'    => $value->batterGameLog['RBI'] ?? 0,
-                        'R'      => $value->batterGameLog['R'] ?? 0,
-                        'single' => $value->batterGameLog['single'] ?? 0,
-                        'double' => $value->batterGameLog['double'] ?? 0,
-                        'triple' => $value->batterGameLog['triple'] ?? 0,
-                        'HR'     => $value->batterGameLog['HR'] ?? 0,
-                        'BB'     => $value->batterGameLog['BB'] ?? 0,
-                        'IBB'    => $value->batterGameLog['IBB'] ?? 0,
-                        'HBP'    => $value->batterGameLog['HBP'] ?? 0,
-                        'SO'     => $value->batterGameLog['SO'] ?? 0,
-                        'SH'     => $value->batterGameLog['SH'] ?? 0,
-                        'SF'     => $value->batterGameLog['SF'] ?? 0,
-                        'SB'     => $value->batterGameLog['SB'] ?? 0,
-                        'CS'     => $value->batterGameLog['CS'] ?? 0,
+                        'gameId'        => $value->id,
+                        'gameDate'      => $value->gameDate,
+                        'teamNameEnemy' => $value->teamNameEnemy->name ?? null,
+                        'PA'            => $value->batterGameLog['PA'] ?? 0,
+                        'AB'            => $value->batterGameLog['AB'] ?? 0,
+                        'RBI'           => $value->batterGameLog['RBI'] ?? 0,
+                        'R'             => $value->batterGameLog['R'] ?? 0,
+                        'single'        => $value->batterGameLog['single'] ?? 0,
+                        'double'        => $value->batterGameLog['double'] ?? 0,
+                        'triple'        => $value->batterGameLog['triple'] ?? 0,
+                        'HR'            => $value->batterGameLog['HR'] ?? 0,
+                        'BB'            => $value->batterGameLog['BB'] ?? 0,
+                        'IBB'           => $value->batterGameLog['IBB'] ?? 0,
+                        'HBP'           => $value->batterGameLog['HBP'] ?? 0,
+                        'SO'            => $value->batterGameLog['SO'] ?? 0,
+                        'SH'            => $value->batterGameLog['SH'] ?? 0,
+                        'SF'            => $value->batterGameLog['SF'] ?? 0,
+                        'SB'            => $value->batterGameLog['SB'] ?? 0,
+                        'CS'            => $value->batterGameLog['CS'] ?? 0,
 
-                        'result' => $result ?? [],
+                        // 'result' => $result ?? [],
                     ];
                 });
             }
@@ -418,7 +422,7 @@ class B21_battingStatistics extends Controller
             $output = [
                 'total' => $B21_gameLogBatterStatistics['total'],
                 'statistics' => $statistics,
-                'BIP' => $B21_batterResultStatistics['BIP'],
+                'GorF' => $B21_batterResultStatistics['GorF'],
                 'distribution' => $B21_batterResultStatistics['distribution'],
             ];
 
@@ -498,13 +502,19 @@ class B21_battingStatistics extends Controller
         $SLG = $table->PA > 0 ? round(($table->single + (2 * $table->double) + (3 * $table->triple) + (4 * $table->HR)) / $table->AB, 3) : 0;
         $OPS = $table->PA > 0 ? round($OBP + $SLG, 3) : 0;
         $output['statistics'] = [
+            // 打擊率
             'AVG' => $avg,
+            // 上壘率
             'OBP' => $OBP,
+            // 長打率
             'SLG' => $SLG,
             'OPS' => $OPS,
-            'KPercentage' => $table->PA > 0 ? round($table->SO / $table->PA * 100, 3)  : 0,
-            'BBPercentage' => $table->PA > 0 ? round(($table->BB + $table->IBB) / $table->PA * 100, 3) : 0,
-            'SBPercentage' => ($table->SB + $table->CS) > 0 ? round($table->SB / ($table->SB + $table->CS) * 100, 3) : 0,
+            // 三振百分比
+            'KPercentage' => $table->PA > 0 ? round($table->SO / $table->PA * 100, 2)  : 0,
+            // 保送百分比
+            'BBPercentage' => $table->PA > 0 ? round(($table->BB + $table->IBB) / $table->PA * 100, 2) : 0,
+            // 盜壘成功率
+            'SBPercentage' => ($table->SB + $table->CS) > 0 ? round($table->SB / ($table->SB + $table->CS) * 100, 2) : 0,
         ];
 
         return $output;
@@ -587,7 +597,7 @@ class B21_battingStatistics extends Controller
 
         // 計算打擊型態百分比
         foreach ($ballInPlay as $key => $value) {
-            $BIP[$value['code']] = [
+            $GorF[$value['code']] = [
                 'name' => $value['name'],
                 'sum' => $value['sum'],
                 'percentage' => $BIP_total > 0 ? round($value['sum'] / $BIP_total * 100, 2) : 0,
@@ -607,7 +617,7 @@ class B21_battingStatistics extends Controller
 
         $output = [
             'RISP_AVG' => $RISP_AB > 0 ? round($RISP_hit / $RISP_AB, 3) : 0,
-            'BIP' => $BIP ?? [],
+            'GorF' => $GorF ?? [],
             'distribution' => $distribution ?? [],
         ];
 

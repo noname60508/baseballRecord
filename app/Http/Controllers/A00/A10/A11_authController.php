@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
-use App\Models\User;
 use Carbon\Carbon;
 use App\Http\Utils\tools;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+use App\Models\User;
+use App\Models\password_reset_tokens;
 
 class A11_authController extends Controller
 {
@@ -48,12 +51,12 @@ class A11_authController extends Controller
             // 檢查是否已存在相同帳號
             $existingUser = User::where('account', $request->account)->exists();
             if ($existingUser) {
-                return response()->failureMessages(['account' => '帳號已存在']);
+                return response()->failureMessages('該帳號名稱已存在');
             }
             // 檢查信箱是否已存在
             $existingEmail = User::where('email', $request->email)->exists();
             if ($existingEmail) {
-                return response()->failureMessages(['email' => '信箱已存在']);
+                return response()->failureMessages('該信箱已註冊已存在');
             }
 
             DB::beginTransaction();
@@ -103,14 +106,14 @@ class A11_authController extends Controller
         try {
             $user = User::where('account', $request->account)->first();
             if (!$user) {
-                return response()->failureMessages(['查無此帳號']);
+                return response()->failureMessages('查無此帳號');
             }
             if ($user && $user->isBan) {
-                return response()->failureMessages(['帳號已被停用，請洽管理員']);
+                return response()->failureMessages('帳號已被停用，請洽管理員');
             }
             if ($user && $user->failCooldown && $this->now->lessThan($user->failCooldown)) {
                 $diff = (int) $this->now->diffInMinutes($user->failCooldown);
-                return response()->failureMessages(['帳號已鎖定，請' . $diff . '分鐘後再試']);
+                return response()->failureMessages('帳號已鎖定，請' . $diff . '分鐘後再試');
             }
             // 帳號或密碼錯誤
             if (!$user || !password_verify($request->password, $user->password)) {
@@ -122,13 +125,13 @@ class A11_authController extends Controller
                         'failCount'    => $faileCount,
                         'failCooldown' => $this->now->addMinutes(10),
                     ]);
-                    return response()->failureMessages(['帳號已鎖定，請10分鐘後再試']);
+                    return response()->failureMessages('帳號已鎖定，請10分鐘後再試');
                 }
 
                 User::where('id', $user->id)->update([
                     'failCount' => $faileCount,
                 ]);
-                return response()->failureMessages(['帳號或密碼錯誤']);
+                return response()->failureMessages('帳號或密碼錯誤');
             }
 
             $expiresAt = Carbon::now(env('APP_TIMEZONE', 'Asia/Tokyo'))->addSeconds(config('envDefault.tokenExpire'));
@@ -426,6 +429,97 @@ class A11_authController extends Controller
                 ->delete();
 
             return response()->apiResponse('密碼更新成功');
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
+
+    /**
+     * 忘記密碼
+     *  */
+    public function forgotPassword(Request $request)
+    {
+        // 參數驗證
+        $validator = Validator::make($request->all(), [
+            // 驗證規則
+            'account' => ['required', 'string'],
+            'email'   => ['required', 'email'],
+        ], [
+            // 自訂回傳錯誤訊息
+            'account' => '【帳號】必填且須為字串格式',
+            'email'   => '【信箱】必填且須為信箱格式',
+        ]);
+        // 錯誤回傳
+        if ($validator->fails()) {
+            return response()->failureMessages($validator->errors());
+        }
+
+        try {
+            password_reset_tokens::where('email', $request->email)->delete();
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return response()->failureMessages(['查無此信箱']);
+            }
+            if ($user->account !== $request->account) {
+                return response()->failureMessages(['帳號與信箱不符']);
+            }
+
+            $token = Str::random(60);
+            password_reset_tokens::insert([
+                'email' => $user->email,
+                'token' => $token,
+                'created_at' => $this->now,
+            ]);
+
+            $user->sendPasswordResetNotification($token);
+
+            return response()->apiResponse('信箱已發送');;
+        } catch (\Throwable $e) {
+            return response()->apiFail($e);
+        }
+    }
+
+    public function resetForgotPassword(Request $request)
+    {
+        // 參數驗證
+        $validator = Validator::make($request->all(), [
+            // 驗證規則
+            'token'    => ['required', 'string'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ], [
+            // 自訂回傳錯誤訊息
+            'token'    => '【token】必填且須為字串格式',
+            'email'    => '【信箱】必填且須為信箱格式',
+            'password' => '【密碼】必填且須為字串格式',
+        ]);
+        // 錯誤回傳
+        if ($validator->fails()) {
+            return response()->failureMessages($validator->errors());
+        }
+
+        try {
+            $user = User::select('users.id', 'password_reset_tokens.created_at')
+                ->leftJoin('password_reset_tokens', 'users.email', '=', 'password_reset_tokens.email')
+                ->where('users.email', $request->email)
+                ->where('password_reset_tokens.token', $request->token)
+                ->first();
+
+            if (!$user) {
+                return response()->failureMessages('查無使用者或密碼重設連結已過期');
+            }
+
+            $diffInMinutes = $this->now->diffInMinutes($user->created_at);
+            if ($diffInMinutes > 10) {
+                password_reset_tokens::where('email', $request->email)->delete();
+                return response()->failureMessages('查無使用者或密碼重設連結已過期');
+            }
+
+            $user->update([
+                'password' => bcrypt($request->password),
+            ]);
+            password_reset_tokens::where('email', $request->email)->delete();
+            return response()->apiResponse('密碼重設成功');;
         } catch (\Throwable $e) {
             return response()->apiFail($e);
         }

@@ -11,7 +11,6 @@ Route::get('hello', function () {
     return response('A00 system API', 200);
 });
 
-// todo 註冊、信箱驗證、忘記密碼
 Route::prefix('A10')->namespace('A10')->group(function () {
     Route::prefix('A11_authController')->group(function () {
         // 新增使用者

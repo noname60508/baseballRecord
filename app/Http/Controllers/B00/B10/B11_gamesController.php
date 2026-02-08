@@ -279,6 +279,7 @@ class B11_gamesController extends Controller
                 'homeAway'          => $table->homeAway ?? null,
                 'score'             => $table->score ?? null,
                 'enemyScore'        => $table->enemyScore ?? null,
+                'gameResult'        => $table->gameResult ?? null,
                 'memo'              => $table->memo ?? null,
             ];
 
