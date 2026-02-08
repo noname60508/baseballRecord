@@ -14,6 +14,6 @@ Route::get('login', 'App\Http\Controllers\A00\A10\A11_authController@login')->wi
 // 帳號註冊
 Route::post('register', 'App\Http\Controllers\A00\A10\A11_authController@register')->withoutMiddleware('auth:sanctum');
 // 忘記密碼
-Route::get('forgotPassword', 'App\Http\Controllers\A00\A10\A11_authController@forgotPassword')->withoutMiddleware('auth:sanctum');
+Route::post('forgotPassword', 'App\Http\Controllers\A00\A10\A11_authController@forgotPassword')->withoutMiddleware('auth:sanctum');
 // 忘記密碼重設密碼
-Route::get('resetForgotPassword', 'App\Http\Controllers\A00\A10\A11_authController@resetForgotPassword')->withoutMiddleware('auth:sanctum');
+Route::post('resetForgotPassword', 'App\Http\Controllers\A00\A10\A11_authController@resetForgotPassword')->withoutMiddleware('auth:sanctum');
