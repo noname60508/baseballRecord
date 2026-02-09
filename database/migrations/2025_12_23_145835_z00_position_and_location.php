@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigInteger('id')->primary()->unsigned()->comment('流水號');
             $table->string('code')->nullable()->comment('位置或守備位置縮寫');
             $table->string('name')->nullable()->comment('位置或守備位置名稱');
+            $table->string('jaName')->nullable()->comment('日文名稱');
             $table->integer('isPosition')->nullable()->comment('是否為守備位置');
             $table->integer('isFairBall')->nullable()->comment('是否為界內球(1:是 0:否)');
             $table->integer('orderNo')->nullable()->comment('排序');

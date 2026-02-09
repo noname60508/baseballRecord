@@ -22,7 +22,7 @@ class Z00_resultOptions extends Controller
     {
         try {
             $table = Z00_matchupResultList::with('options')
-                ->select('id', 'code', 'name')
+                ->select('id', 'code', 'name', 'jaName')
                 ->orderBy('orderNo')
                 ->get();
             // return $table;
@@ -32,6 +32,7 @@ class Z00_resultOptions extends Controller
                     'Z00_matchupResultList_id' => $value['id'],
                     'code' => $value['code'],
                     'name' => $value['name'],
+                    'jaName' => $value['jaName'],
                     'ballTypeOptions' => explode(',', $value['options']['ballTypeOptions']),
                     'locationOptions' => explode(',', $value['options']['locationOptions']),
                 ];
@@ -52,7 +53,7 @@ class Z00_resultOptions extends Controller
                     ->select('locationOptions')->first();
             }
 
-            $table = Z00_positionAndLocation::select('id', 'code', 'name')
+            $table = Z00_positionAndLocation::select('id', 'code', 'name', 'jaName')
                 ->when($Z00_matchupResultList_id > 0, function ($query) use ($Z00_matchupOptions) {
                     $locationOptions = explode(',', $Z00_matchupOptions->locationOptions);
                     return $query->whereIn('id', $locationOptions);
@@ -66,6 +67,7 @@ class Z00_resultOptions extends Controller
                     'Z00_positionAndLocation_id' => $value['id'],
                     'code' => $value['code'],
                     'name' => $value['name'],
+                    'jaName' => $value['jaName'],
                 ];
             }
 
@@ -85,7 +87,7 @@ class Z00_resultOptions extends Controller
                     ->select('ballTypeOptions')->first();
             }
 
-            $table = Z00_ballInPlayType::select('id', 'code', 'name')
+            $table = Z00_ballInPlayType::select('id', 'code', 'name', 'jaName')
                 ->when($Z00_matchupResultList_id > 0, function ($query) use ($Z00_matchupOptions) {
                     $ballTypeOptions = explode(',', $Z00_matchupOptions->ballTypeOptions);
                     return $query->whereIn('id', $ballTypeOptions);
@@ -98,6 +100,7 @@ class Z00_resultOptions extends Controller
                     'Z00_ballInPlayType_id' => $value['id'],
                     'code' => $value['code'],
                     'name' => $value['name'],
+                    'jaName' => $value['jaName'],
                 ];
             }
 

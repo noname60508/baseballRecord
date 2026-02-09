@@ -27,17 +27,17 @@ class tools
     private static function getZ00Table()
     {
         if (count(self::$Z00_ballInPlayType) == 0) {
-            self::$Z00_ballInPlayType = Z00_ballInPlayType::select('id', 'name')->get();
+            self::$Z00_ballInPlayType = Z00_ballInPlayType::select('id', 'name', 'jaName')->get();
         }
         if (count(self::$Z00_matchupResultList) == 0) {
-            self::$Z00_matchupResultList = Z00_matchupResultList::select('id', 'name', 'isAtBat')->get();
+            self::$Z00_matchupResultList = Z00_matchupResultList::select('id', 'name', 'isAtBat', 'jaName')->get();
         }
         if (count(self::$Z00_positionAndLocation) == 0) {
-            self::$Z00_positionAndLocation = Z00_positionAndLocation::select('id', 'name')->get();
+            self::$Z00_positionAndLocation = Z00_positionAndLocation::select('id', 'name', 'jaName')->get();
         }
     }
 
-    public static function getDisplayName(int $Z00_matchupResultList_id, int $Z00_location_id, int $Z00_BallInPlayType_id): string
+    public static function getDisplayName(int $Z00_matchupResultList_id, int $Z00_location_id, int $Z00_BallInPlayType_id): array
     {
         self::getZ00Table();
         $Z00_matchupResultList = collect(self::$Z00_matchupResultList)->keyBy('id');
@@ -48,21 +48,32 @@ class tools
         $Z00_positionAndLocation[0] = ['name' => ''];
         $Z00_ballInPlayType[0] = ['name' => ''];
 
-        match ($Z00_matchupResultList_id) {
-            // 右外野全壘打/左外野高飛犧牲打...
-            7, 8, 9 => $displayName = $Z00_positionAndLocation[$Z00_location_id]['name'] . $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
-            // 三振/保送...
-            10, 11, 12, 13, 14, 15 => $displayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
-            // 游擊滾地球出局/中外野高飛球二壘安打...
-            default => $displayName = $Z00_positionAndLocation[$Z00_location_id]['name'] . $Z00_ballInPlayType[$Z00_BallInPlayType_id]['name'] . $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
-        };
-        return $displayName;
+        // match ($Z00_matchupResultList_id) {
+        //     // 右外野全壘打/左外野高飛犧牲打...
+        //     7, 8, 9 => $displayName = $Z00_positionAndLocation[$Z00_location_id]['name'] . $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
+        //     // 三振/保送...
+        //     10, 11, 12, 13, 14, 15 => $displayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
+        //     // 游擊滾地球出局/中外野高飛球二壘安打...
+        //     default => $displayName = $Z00_positionAndLocation[$Z00_location_id]['name'] . $Z00_ballInPlayType[$Z00_BallInPlayType_id]['name'] . $Z00_matchupResultList[$Z00_matchupResultList_id]['name'],
+        // };
+
+        if ($Z00_location_id == 0 && $Z00_BallInPlayType_id == 0) {
+            $displayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['name'];
+            $jaDisplayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['jaName'];
+        } else {
+            $displayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['name'] . '(' . $Z00_positionAndLocation[$Z00_location_id]['name'] . $Z00_ballInPlayType[$Z00_BallInPlayType_id]['name'] . ')';
+            $jaDisplayName = $Z00_matchupResultList[$Z00_matchupResultList_id]['jaName'] . '（' . $Z00_positionAndLocation[$Z00_location_id]['jaName'] . $Z00_ballInPlayType[$Z00_BallInPlayType_id]['jaName'] . '）';
+        }
+        return [
+            'displayName'   => $displayName,
+            'jaDisplayName' => $jaDisplayName
+        ];
     }
 
     public static function B21_gameLogBatterUpdate($game_id)
     {
         if (count(self::$Z00_matchupResultList) == 0) {
-            self::$Z00_matchupResultList = Z00_matchupResultList::select('id', 'name', 'isAtBat')->get();
+            self::$Z00_matchupResultList = Z00_matchupResultList::select('id', 'name', 'isAtBat', 'jaName')->get();
         }
         $Z00_matchupResultList = collect(self::$Z00_matchupResultList)->keyBy('id');
         $B21_batterResult = B21_batterResult::where('game_id', $game_id)->get();

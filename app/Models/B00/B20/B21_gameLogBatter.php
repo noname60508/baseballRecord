@@ -26,7 +26,7 @@ class B21_gameLogBatter extends Model
     public function batterResult()
     {
         return $this->hasMany(B21_batterResult::class, 'game_id', 'game_id')
-            ->select('id', 'game_id', 'orderNo', 'pitcher', 'Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id', 'RBI', 'displayName', 'RISP')
+            ->select('id', 'game_id', 'orderNo', 'pitcher', 'Z00_matchupResultList_id', 'Z00_location_id', 'Z00_BallInPlayType_id', 'RBI', 'displayName', 'jaDisplayName', 'RISP')
             ->orderBy('B21_batterResult.orderNo', 'asc');
     }
 }

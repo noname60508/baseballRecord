@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigInteger('id')->primary()->unsigned()->comment('流水號');
             $table->string('code')->nullable()->comment('縮寫');
             $table->string('name')->nullable()->comment('名稱');
+            $table->string('jaName')->nullable()->comment('日文名稱');
             $table->integer('orderNo')->nullable()->comment('排序');
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***

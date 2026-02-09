@@ -28,6 +28,7 @@ return new class extends Migration
             commonMigration::basicTimestamp($table);
             /** ***增加欄位***
              * $table->string('displayName', 255)->nullable()->comment('打擊結果展示名稱');
+             * $table->string('jaDisplayName', 255)->nullable()->comment('顯示名稱(日文)');
              */
         });
     }

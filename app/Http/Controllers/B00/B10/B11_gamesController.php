@@ -63,11 +63,11 @@ class B11_gamesController extends Controller
                 ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_field_id', $request->input('Z00_field_id'));
                 })
-                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                    $query->whereBetween('gameDate', $request->input('gameDate'));
-                })
                 ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                     $query->where('gameResult', $request->input('gameResult'));
+                })
+                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                    $query->whereBetween('gameDate', $request->input('gameDate'));
                 })
                 ->orderBy('id', 'desc');
 

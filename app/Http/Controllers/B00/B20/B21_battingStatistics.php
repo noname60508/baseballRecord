@@ -77,11 +77,11 @@ class B21_battingStatistics extends Controller
                 ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
                     $query->where('Z00_field_id', $request->input('Z00_field_id'));
                 })
-                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                    $query->whereBetween('gameDate', $request->input('gameDate'));
-                })
                 ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                     $query->where('gameResult', $request->input('gameResult'));
+                })
+                ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                    $query->whereBetween('gameDate', $request->input('gameDate'));
                 });
 
             if ($request->has('orderBy')) {
@@ -259,11 +259,14 @@ class B21_battingStatistics extends Controller
             ]);
 
             foreach ($request->input('result') as $key => $result) {
-                $displayName = tools::getDisplayName(
+                $getDisplayName = tools::getDisplayName(
                     Z00_matchupResultList_id: $result['Z00_matchupResultList_id'],
                     Z00_location_id: $result['Z00_location_id'] ?? 0,
                     Z00_BallInPlayType_id: $result['Z00_BallInPlayType_id'] ?? 0,
                 );
+                $displayName   = $getDisplayName['displayName'];
+                $jaDisplayName = $getDisplayName['jaDisplayName'];
+
                 $B21_batterResult[] = B21_batterResult::create([
                     'game_id'                     => $request->input('game_id'),
                     'user_id'                     => $request->user()->id,
@@ -275,6 +278,7 @@ class B21_battingStatistics extends Controller
                     'RISP'                        => $result['RISP'],
                     'orderNo'                     => $result['orderNo'],
                     'displayName'                 => $displayName,
+                    'jaDisplayName'               => $jaDisplayName,
                 ]);
             }
 
@@ -318,6 +322,7 @@ class B21_battingStatistics extends Controller
                         'Z00_BallInPlayType_id' => $value['Z00_BallInPlayType_id'],
                         'RBI' => $value['RBI'],
                         'displayName' => $value['displayName'],
+                        'jaDisplayName' => $value['jaDisplayName'],
                         'RISP' => $value['RISP'],
                     ];
                 }
@@ -467,11 +472,11 @@ class B21_battingStatistics extends Controller
             ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
                 $query->where('Z00_field_id', $request->input('Z00_field_id'));
             })
-            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                $query->whereBetween('gameDate', $request->input('gameDate'));
-            })
             ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                 $query->where('gameResult', $request->input('gameResult'));
+            })
+            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                $query->whereBetween('gameDate', $request->input('gameDate'));
             })
             ->whereNull('B11_games.deleted_at')
             ->first();
@@ -539,11 +544,11 @@ class B21_battingStatistics extends Controller
             ->when($request->has('Z00_field_id') && !is_null($request->input('Z00_field_id') && $request->input('Z00_field_id') != ''), function ($query) use ($request) {
                 $query->where('Z00_field_id', $request->input('Z00_field_id'));
             })
-            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
-                $query->whereBetween('gameDate', $request->input('gameDate'));
-            })
             ->when($request->has('gameResult') && !is_null($request->input('gameResult') && $request->input('gameResult') != ''), function ($query) use ($request) {
                 $query->where('gameResult', $request->input('gameResult'));
+            })
+            ->when($request->has('gameDate') && !is_null($request->gameDate[0]) && !is_null($request->gameDate[1]), function ($query) use ($request) {
+                $query->whereBetween('gameDate', $request->input('gameDate'));
             })
             ->whereNull('B11_games.deleted_at')
             ->get();

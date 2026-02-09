@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('{{ table }}', function (Blueprint $table) {
-            //$table->string('', 255)->nullable()->comment('')->after('');
+        Schema::table('B21_batterResult', function (Blueprint $table) {
+            $table->string('jaDisplayName', 255)->nullable()->comment('顯示名稱(日文)')->after('displayName');
         });
     }
 
@@ -25,9 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('{{ table }}', function (Blueprint $table) {
-             //$table->dropColumn('');
+        Schema::table('B21_batterResult', function (Blueprint $table) {
+            $table->dropColumn('jaDisplayName');
         });
     }
 };
-

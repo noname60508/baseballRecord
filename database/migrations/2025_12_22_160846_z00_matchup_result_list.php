@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigInteger('id')->primary()->unsigned()->comment('流水號');
             $table->string('code')->nullable()->comment('縮寫');
             $table->string('name')->nullable()->comment('結果名稱');
+            $table->string('jaName')->nullable()->comment('日文名稱');
             $table->integer('isAtBat')->nullable()->comment('是否列入打席');
             $table->integer('isHit')->nullable()->comment('是否計算打擊率');
             $table->integer('isOnBase')->nullable()->comment('是否計算上壘率');
