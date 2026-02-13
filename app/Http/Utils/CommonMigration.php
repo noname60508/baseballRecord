@@ -5,7 +5,7 @@ namespace App\Http\Utils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 
-class CommonMigration
+class commonMigration
 {
     /**
      * 時間戳
