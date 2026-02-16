@@ -149,7 +149,7 @@ class A11_authController extends Controller
                 'name'    => $user->name ?? null,
                 'email'   => $user->email ?? null,
                 'isBan'   => $user->isBan,
-                'icon'    => !empty($value->icon) ? $this->disk->url($value->icon) : null,
+                'icon'    => !empty($user->icon) ? $this->disk->url($user->icon) : null,
             ];
             return response()->apiResponse($output, $token);
         } catch (\Throwable $e) {
