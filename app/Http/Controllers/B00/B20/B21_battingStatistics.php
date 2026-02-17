@@ -587,8 +587,10 @@ class B21_battingStatistics extends Controller
                 $value['isHit'] == 1 ? $RISP_hit++ : '';
             }
 
-            // 計算打擊型態BIP分布(全壘打不列入計算) && 計算擊球分布
-            if ($value['ballInPlay'] == 1 && $value['isFairBall'] == 1 && $value['Z00_matchupResultList_id'] != 7) {
+            // // 計算打擊型態BIP分布(全壘打不列入計算) && 計算擊球分布
+            // if ($value['ballInPlay'] == 1 && $value['isFairBall'] == 1 && $value['Z00_matchupResultList_id'] != 7) {
+            // 計算打擊型態BIP分布 && 計算擊球分布
+            if ($value['ballInPlay'] == 1 && $value['isFairBall'] == 1) {
                 // 打擊型態
                 $BIP_total++;
                 $ballInPlay[$value['Z00_BallInPlayType_id']]['sum']++;
