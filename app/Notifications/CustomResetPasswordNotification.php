@@ -35,7 +35,7 @@ class CustomResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = config('envDefault.frontendUrl') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
+        $url = config('envDefault.frontendUrl') . '/#/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
         return (new MailMessage)
             ->subject('Baseball Record重設密碼通知') // 自定義標題
             ->greeting('您好！')
