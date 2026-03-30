@@ -22,5 +22,5 @@ Route::prefix('A10')->namespace('A10')->group(function () {
         // 修改密碼
         Route::post('changePassword', 'A11_authController@changePassword');
     });
-    Route::apiResource('A11_authController', 'A11_authController');
+    Route::apiResource('A11_authController', 'A11_authController')->only(['index', 'show', 'update', 'destroy']);
 });

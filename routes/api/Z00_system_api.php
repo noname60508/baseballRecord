@@ -12,11 +12,11 @@ Route::get('hello', function () {
 });
 
 // 隊伍
-Route::apiResource('Z00_teamsController', 'Z00_teamsController');
+Route::apiResource('Z00_teamsController', 'Z00_teamsController')->only(['index', 'store', 'update', 'destroy']);
 // 賽季
-Route::apiResource('Z00_seasonsController', 'Z00_seasonsController');
+Route::apiResource('Z00_seasonsController', 'Z00_seasonsController')->only(['index', 'store', 'update', 'destroy']);
 // 場地
-Route::apiResource('Z00_fieldsController', 'Z00_fieldsController');
+Route::apiResource('Z00_fieldsController', 'Z00_fieldsController')->only(['index', 'store', 'update', 'destroy']);
 
 // 結果記錄選項
 Route::prefix('Z00_resultOptions')->group(function () {
